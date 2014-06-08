@@ -2,7 +2,7 @@
 #ifndef _Cpu6502_h_
 	#define _Cpu6502_h_
 
-//#define _Disassembler // compiles the disassembler
+#define _Cpu6502_Disassembler // compiles the disassembler
 
 #include <assert.h>
 #include "Opcodes.h"
@@ -29,7 +29,7 @@ typedef struct // Cpu6502
 	byte x; // Index register x
 	byte y; // Index register y
 	
-	struct { // *warning* !=0 means true, not guaranteed to be exactly = 1
+	struct Cpu6502_status { // *warning* !=0 means true, not guaranteed to be exactly = 1
 		byte carry;
 		byte zero;
 		byte interrupt_disable;
@@ -39,11 +39,15 @@ typedef struct // Cpu6502
 		byte negative;
 	} status;
 
-	void *sys; // Pointer to the parent system, I.E. C64, NES, VCS, BBCm
+	void *sys; // Pointer to the parent system, E.G.: C64, NES, VCS, BBC
 
 	// Pointers to external memory access functions provided by the parent system
 	byte (*read_memory)( void *parent_system, word address );
 	void (*write_memory)( void *parent_system, word address, byte value );
+
+	#ifdef _Cpu6502_Disassembler
+		unsigned long int instruction_count;
+	#endif
 
 } Cpu6502;
 
@@ -60,7 +64,7 @@ void Cpu6502_Free( Cpu6502 *cpu );
 // Executes the next instruction pointed to by the program counter
 void Cpu6502_CpuStep( Cpu6502 *cpu );
 
-#ifdef _Disassembler
+#ifdef _Cpu6502_Disassembler
 	void Cpu6502_Disassemble( Cpu6502 *cpu );
 	char* Cpu6502_Get_addressing( Cpu6502 *cpu, char *string );
 #endif

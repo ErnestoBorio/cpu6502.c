@@ -4,30 +4,24 @@
 	public interface of Cpu6502 */
 
 // -------------------------------------------------------------------------------
-static void LDA( Cpu6502 *cpu, byte value )
+static void LDr( Cpu6502 *cpu, byte *register_, byte value ) // LDA, LDX, LDY
 {
-	cpu->a = value;
+	*register_ = value;
 	cpu->status.zero = ( value == 0 );
 	cpu->status.negative = ( value & sign_bit ) > 0;
 }
 // -------------------------------------------------------------------------------
-static void STA( Cpu6502 *cpu, word address )
+static void CPr( Cpu6502 *cpu, byte register_, byte value ) // CMP, CPX, CPY
 {
-	cpu->write_memory( cpu->sys, address, cpu->a );
-	cpu->status.zero = ( cpu->a == 0 );
-	cpu->status.negative = ( cpu->a & sign_bit ) > 0;
+	cpu->status.zero  = ( register_ == value );
+	cpu->status.carry = ( register_ >= value );
+	cpu->status.negative = ( ( register_ - value ) & sign_bit ) > 0;
 }
 // -------------------------------------------------------------------------------
-static void CMP( Cpu6502 *cpu, byte value )
+// BEQ, BNE, BPL, BMI, BVS, BVC, BCS, BCC
+static void Branch( Cpu6502 *cpu, byte flag, byte condition, byte jump )
 {
-	cpu->status.zero  = ( cpu->a == value );
-	cpu->status.carry = ( cpu->a >= value );
-	cpu->status.negative = ( ( cpu->a - value ) & sign_bit ) > 0;
-}
-// -------------------------------------------------------------------------------
-static void BEQ( Cpu6502 *cpu, byte jump )
-{
-	if( cpu->status.zero ) {
+	if( flag == condition ) {
 		cpu->pc = Relative( cpu, jump );
 	}
 	else {
@@ -41,5 +35,12 @@ static void JMP( Cpu6502 *cpu, byte address_lowbyte )
 	// [pc+2] is the high byte of the address:
 	address |= cpu->read_memory( cpu->sys, cpu->pc + 2 ) <<8;
 	cpu->pc = address;
+}
+// -------------------------------------------------------------------------------
+static void Trr( Cpu6502 *cpu, byte reg_from, byte *reg_to ) // TAX, TAY, TXA, TYA
+{
+	*reg_to = reg_from;
+	cpu->status.zero = ( reg_from == 0 );
+	cpu->status.negative = ( reg_from & sign_bit ) > 0;
 }
 // -------------------------------------------------------------------------------

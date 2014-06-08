@@ -3,7 +3,7 @@
 #include <string.h>
 #include "Cpu6502.h"
 
-#ifdef _Disassembler
+#ifdef _Cpu6502_Disassembler
 
 static const char opcode_mnemonic[0x100][4] = {
 //         0       1       2       3       4       5       6       7       8       9       A       B       C       D       E       F
@@ -48,9 +48,11 @@ static const int opcode_length[ 0x100 ] = {
 // ----------------------------------------------------------------------------------------------------------------
 void Cpu6502_Disassemble( Cpu6502 *cpu )
 {
+	cpu->instruction_count++;
+
 	char string[256];
 	byte opcode = cpu->read_memory( cpu->sys, cpu->pc );
-	printf( "pc:%4X  %02X ", cpu->pc, opcode );
+	printf( "pc:%04X  %02X ", cpu->pc, opcode );
 
 	if( opcode_length[opcode] > 1 ) {
 		printf( "%02X ", cpu->read_memory( cpu->sys, cpu->pc+1 ) );
@@ -65,13 +67,13 @@ void Cpu6502_Disassemble( Cpu6502 *cpu )
 
 	printf( " a:%02X x:%02X y:%02X sp:%02X  %c%c%c%c.%c%c%c  %s %s\n",
 			 cpu->a, cpu->x, cpu->y, cpu->sp,
-			 ( cpu->status.zero ? 'Z' : '.' ),
-			 ( cpu->status.negative ? 'N' : '.' ),
-			 ( cpu->status.carry ? 'C' : '.' ),
-			 ( cpu->status.overflow ? 'V' : '.' ),
-			 ( cpu->status.decimal_mode ? 'D' : '.' ),
-			 ( cpu->status.interrupt_disable ? 'I' : '.' ),
-			 ( cpu->status.break_command ? 'B' : '.' ),
+			 ( cpu->status.zero ? 'z' : '.' ),
+			 ( cpu->status.negative ? 'n' : '.' ),
+			 ( cpu->status.carry ? 'c' : '.' ),
+			 ( cpu->status.overflow ? 'v' : '.' ),
+			 ( cpu->status.decimal_mode ? 'd' : '.' ),
+			 ( cpu->status.interrupt_disable ? 'i' : '.' ),
+			 ( cpu->status.break_command ? 'b' : '.' ),
 			 opcode_mnemonic[opcode],
 			 Cpu6502_Get_addressing( cpu, string ) );
 }
@@ -150,7 +152,7 @@ char* Cpu6502_Get_addressing( Cpu6502 *cpu, char *string )
 	return string;
 }
 
-#endif // #ifdef _Disassembler
+#endif // #ifdef _Cpu6502_Disassembler
 
 
 
