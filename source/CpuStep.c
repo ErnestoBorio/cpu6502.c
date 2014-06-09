@@ -53,6 +53,17 @@ void Cpu6502_CpuStep( Cpu6502 *cpu )
 		case TAY_A8: Trr( cpu, cpu->a, &cpu->y ); Implied(); break;
 		case TXA_8A: Trr( cpu, cpu->x, &cpu->a ); Implied(); break;
 		case TYA_98: Trr( cpu, cpu->y, &cpu->a ); Implied(); break;
+		case TSX_BA: Trr( cpu, cpu->sp, &cpu->x ); Implied(); break;
+		case TXS_9A: Trr( cpu, cpu->x, &cpu->sp ); Implied(); break;
+		/*
+		case PHP_08:
+		case PHA_48:
+		case PLP_28:
+		case PLA_68: //*/
+
+		case AND_Immediate_29: AND( cpu, operand ); Immediate(); break;
+		case EOR_Immediate_49: EOR( cpu, operand ); Immediate(); break;
+		case ORA_Immediate_09: ORA( cpu, operand ); Immediate(); break;
 
 		case BEQ_Relative_F0: Branch( cpu, cpu->status.zero, 1, operand ); break;
 		case BNE_Relative_D0: Branch( cpu, cpu->status.zero, 0, operand ); break;
@@ -73,6 +84,7 @@ void Cpu6502_CpuStep( Cpu6502 *cpu )
 		case CLI_58: cpu->status.interrupt_disable = 0; Implied(); break;
 		case CLV_B8: cpu->status.overflow = 0; Implied(); break;
 
+		defualt:
 		default:
 			printf( "Opcode $%02X not implemented\n", opcode );
 			operand = operand;

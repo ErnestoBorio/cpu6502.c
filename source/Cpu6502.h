@@ -12,13 +12,14 @@ typedef unsigned short int word;
 
 #define sign_bit 1<<7 // Most significant bit of a byte is the sign bit, 1 means negative
 
+/*
 inline byte lowbyte( word value ) {
     return value & 0xFF;
 }
-
 inline byte highbyte( word value ) {
     return ( value & 0xFF00 ) >>8;
 }
+//*/
 
 // -------------------------------------------------------------------------------
 typedef struct // Cpu6502
@@ -29,7 +30,7 @@ typedef struct // Cpu6502
 	byte x; // Index register x
 	byte y; // Index register y
 	
-	struct Cpu6502_status { // *warning* !=0 means true, not guaranteed to be exactly = 1
+	struct Cpu6502_status {
 		byte carry;
 		byte zero;
 		byte interrupt_disable;

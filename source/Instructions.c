@@ -18,6 +18,27 @@ static void CPr( Cpu6502 *cpu, byte register_, byte value ) // CMP, CPX, CPY
 	cpu->status.negative = ( ( register_ - value ) & sign_bit ) > 0;
 }
 // -------------------------------------------------------------------------------
+static void AND( Cpu6502 *cpu, byte value )
+{
+	cpu->a &= value;
+	cpu->status.zero = ( cpu->a == 0 );
+	cpu->status.negative = ( cpu->a & sign_bit ) > 0;
+}
+// -------------------------------------------------------------------------------
+static void EOR( Cpu6502 *cpu, byte value )
+{
+	cpu->a ^= value;
+	cpu->status.zero = ( cpu->a == 0 );
+	cpu->status.negative = ( cpu->a & sign_bit ) > 0;
+}
+// -------------------------------------------------------------------------------
+static void ORA( Cpu6502 *cpu, byte value )
+{
+	cpu->a |= value;
+	cpu->status.zero = ( cpu->a == 0 );
+	cpu->status.negative = ( cpu->a & sign_bit ) > 0;
+}
+// -------------------------------------------------------------------------------
 // BEQ, BNE, BPL, BMI, BVS, BVC, BCS, BCC
 static void Branch( Cpu6502 *cpu, byte flag, byte condition, byte jump )
 {
