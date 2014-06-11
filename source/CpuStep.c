@@ -39,6 +39,11 @@ void Cpu6502_CpuStep( Cpu6502 *cpu )
 		case STX_Absolute_8E: cpu->write_memory( cpu->sys, Absolute( cpu, operand ), cpu->x ); break;
 		case STY_Absolute_8C: cpu->write_memory( cpu->sys, Absolute( cpu, operand ), cpu->y ); break;
 
+		case INX_E8: DeInXY( cpu, &cpu->x, +1 ); Implied(); break;
+		case DEX_CA: DeInXY( cpu, &cpu->x, -1 ); Implied(); break;
+		case INY_C8: DeInXY( cpu, &cpu->y, +1 ); Implied(); break;
+		case DEY_88: DeInXY( cpu, &cpu->y, -1 ); Implied(); break;
+
 		case CMP_Zero_page_C5: CPr( cpu, cpu->a, cpu->read_memory( cpu->sys, operand ) ); ZeroPage(); break;
 		case CPX_Zero_page_E4: CPr( cpu, cpu->x, cpu->read_memory( cpu->sys, operand ) ); ZeroPage(); break;
 		case CPY_Zero_page_C4: CPr( cpu, cpu->y, cpu->read_memory( cpu->sys, operand ) ); ZeroPage(); break;
@@ -64,6 +69,8 @@ void Cpu6502_CpuStep( Cpu6502 *cpu )
 		case AND_Immediate_29: AND( cpu, operand ); Immediate(); break;
 		case EOR_Immediate_49: EOR( cpu, operand ); Immediate(); break;
 		case ORA_Immediate_09: ORA( cpu, operand ); Immediate(); break;
+		case BIT_Zero_page_24: BIT( cpu, cpu->read_memory( cpu->sys, operand ) ); ZeroPage(); break;
+		case BIT_Absolute_2C: BIT( cpu, Absolute( cpu, operand ) ); break;
 
 		case BEQ_Relative_F0: Branch( cpu, cpu->status.zero, 1, operand ); break;
 		case BNE_Relative_D0: Branch( cpu, cpu->status.zero, 0, operand ); break;

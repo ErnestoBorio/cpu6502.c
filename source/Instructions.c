@@ -4,39 +4,53 @@
 	public interface of Cpu6502 */
 
 // -------------------------------------------------------------------------------
-static void LDr( Cpu6502 *cpu, byte *register_, byte value ) // LDA, LDX, LDY
+static void LDr( Cpu6502 *cpu, byte *registre, byte value ) // LDA, LDX, LDY
 {
-	*register_ = value;
+	*registre = value;
 	cpu->status.zero = ( value == 0 );
-	cpu->status.negative = ( value & sign_bit ) > 0;
+	cpu->status.negative = ( value & sign_bit ) != 0;
 }
 // -------------------------------------------------------------------------------
-static void CPr( Cpu6502 *cpu, byte register_, byte value ) // CMP, CPX, CPY
+static void DeInXY( Cpu6502 *cpu, byte *registre, signed int delta ) // INX, DEX, INY, DEY
 {
-	cpu->status.zero  = ( register_ == value );
-	cpu->status.carry = ( register_ >= value );
-	cpu->status.negative = ( ( register_ - value ) & sign_bit ) > 0;
+	*registre += delta;
+	cpu->status.zero = ( *registre == 0 );
+	cpu->status.negative = ( *registre & sign_bit ) != 0;
+}
+// -------------------------------------------------------------------------------
+static void CPr( Cpu6502 *cpu, byte registre, byte value ) // CMP, CPX, CPY
+{
+	cpu->status.zero  = ( registre == value );
+	cpu->status.carry = ( registre >= value );
+	cpu->status.negative = ( ( registre - value ) & sign_bit ) != 0;
 }
 // -------------------------------------------------------------------------------
 static void AND( Cpu6502 *cpu, byte value )
 {
 	cpu->a &= value;
 	cpu->status.zero = ( cpu->a == 0 );
-	cpu->status.negative = ( cpu->a & sign_bit ) > 0;
+	cpu->status.negative = ( cpu->a & sign_bit ) != 0;
 }
 // -------------------------------------------------------------------------------
 static void EOR( Cpu6502 *cpu, byte value )
 {
 	cpu->a ^= value;
 	cpu->status.zero = ( cpu->a == 0 );
-	cpu->status.negative = ( cpu->a & sign_bit ) > 0;
+	cpu->status.negative = ( cpu->a & sign_bit ) != 0;
 }
 // -------------------------------------------------------------------------------
 static void ORA( Cpu6502 *cpu, byte value )
 {
 	cpu->a |= value;
 	cpu->status.zero = ( cpu->a == 0 );
-	cpu->status.negative = ( cpu->a & sign_bit ) > 0;
+	cpu->status.negative = ( cpu->a & sign_bit ) != 0;
+}
+// -------------------------------------------------------------------------------
+static void BIT( Cpu6502 *cpu, byte value )
+{
+	cpu->status.zero = ( ( value & cpu->a ) == 0 );
+	cpu->status.overflow = ( value & bit6 ) != 0;
+	cpu->status.negative = ( value & sign_bit ) != 0;
 }
 // -------------------------------------------------------------------------------
 // BEQ, BNE, BPL, BMI, BVS, BVC, BCS, BCC
@@ -62,6 +76,6 @@ static void Trr( Cpu6502 *cpu, byte reg_from, byte *reg_to ) // TAX, TAY, TXA, T
 {
 	*reg_to = reg_from;
 	cpu->status.zero = ( reg_from == 0 );
-	cpu->status.negative = ( reg_from & sign_bit ) > 0;
+	cpu->status.negative = ( reg_from & sign_bit ) != 0;
 }
 // -------------------------------------------------------------------------------
