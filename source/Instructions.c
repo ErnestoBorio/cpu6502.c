@@ -18,6 +18,27 @@ static void DeInXY( Cpu6502 *cpu, byte *registre, signed int delta ) // INX, DEX
 	cpu->status.negative = ( *registre & sign_bit ) != 0;
 }
 // -------------------------------------------------------------------------------
+static void ADC( Cpu6502 *cpu, byte value )
+{
+	word sum = cpu->a + value + cpu->status.carry;
+	cpu->status.carry = ( sum > 0xFF );
+	cpu->status.overflow = ( ( ( cpu->a ^ sum ) & ( value ^ sum ) & sign_bit ) != 0 );
+	cpu->a = sum & 0xFF;
+	cpu->status.zero = ( cpu->a == 0 );
+	cpu->status.negative = ( cpu->a & sign_bit ) != 0;
+
+}
+// -------------------------------------------------------------------------------
+static void SBC( Cpu6502 *cpu, byte value )
+{
+	word diff = cpu->a - value - ( ! cpu->status.carry );
+	cpu->status.carry = ( diff < 0x100 );
+	cpu->status.overflow = ( ( ( cpu->a ^ value ) & ( cpu->a ^ diff ) & sign_bit ) != 0 );
+	cpu->a = diff & 0xFF;
+	cpu->status.zero = ( cpu->a == 0 );
+	cpu->status.negative = ( cpu->a & sign_bit ) != 0;
+}
+// -------------------------------------------------------------------------------
 static void CPr( Cpu6502 *cpu, byte registre, byte value ) // CMP, CPX, CPY
 {
 	cpu->status.zero  = ( registre == value );

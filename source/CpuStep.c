@@ -44,6 +44,9 @@ void Cpu6502_CpuStep( Cpu6502 *cpu )
 		case INY_C8: DeInXY( cpu, &cpu->y, +1 ); Implied(); break;
 		case DEY_88: DeInXY( cpu, &cpu->y, -1 ); Implied(); break;
 
+		case ADC_Immediate_69: ADC( cpu, operand ); Immediate(); break;
+		case SBC_Immediate_E9: SBC( cpu, operand ); Immediate(); break;
+
 		case CMP_Zero_page_C5: CPr( cpu, cpu->a, cpu->read_memory( cpu->sys, operand ) ); ZeroPage(); break;
 		case CPX_Zero_page_E4: CPr( cpu, cpu->x, cpu->read_memory( cpu->sys, operand ) ); ZeroPage(); break;
 		case CPY_Zero_page_C4: CPr( cpu, cpu->y, cpu->read_memory( cpu->sys, operand ) ); ZeroPage(); break;
