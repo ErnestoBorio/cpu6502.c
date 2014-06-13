@@ -10,8 +10,10 @@
 typedef unsigned char byte;
 typedef unsigned short int word;
 
-#define sign_bit 1<<7 // Most significant bit of a byte is the sign bit, 1 means negative
+#define bit0 1<<0
 #define bit6 1<<6
+#define bit7 1<<7
+#define sign_bit bit7 // Most significant bit of a byte is the sign bit, 1 means negative
 
 /*
 inline byte lowbyte( word value ) {

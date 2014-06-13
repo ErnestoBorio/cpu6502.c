@@ -31,6 +31,9 @@ void Cpu6502_CpuStep( Cpu6502 *cpu )
 		case LDA_Immediate_A9: LDr( cpu, &cpu->a, operand ); Immediate(); break;
 		case LDX_Immediate_A2: LDr( cpu, &cpu->x, operand ); Immediate(); break;
 		case LDY_Immediate_A0: LDr( cpu, &cpu->y, operand ); Immediate(); break;
+		case LDA_Zero_page_A5: LDr( cpu, &cpu->a, cpu->read_memory( cpu->sys, operand ) ); ZeroPage(); break;
+		case LDX_Zero_page_A6: LDr( cpu, &cpu->x, cpu->read_memory( cpu->sys, operand ) ); ZeroPage(); break;
+		case LDY_Zero_page_A4: LDr( cpu, &cpu->y, cpu->read_memory( cpu->sys, operand ) ); ZeroPage(); break;
 
 		case STA_Zero_page_85: cpu->write_memory( cpu->sys, operand, cpu->a ); ZeroPage(); break;
 		case STX_Zero_page_86: cpu->write_memory( cpu->sys, operand, cpu->x ); ZeroPage(); break;
@@ -46,6 +49,11 @@ void Cpu6502_CpuStep( Cpu6502 *cpu )
 
 		case ADC_Immediate_69: ADC( cpu, operand ); Immediate(); break;
 		case SBC_Immediate_E9: SBC( cpu, operand ); Immediate(); break;
+
+		case ASL_Zero_page_06: ASL( cpu, operand ); ZeroPage(); break;
+		case LSR_Zero_page_46: LSR( cpu, operand ); ZeroPage(); break;
+		case ROL_Zero_page_26: ROL( cpu, operand ); ZeroPage(); break;
+		case ROR_Zero_page_66: ROR( cpu, operand ); ZeroPage(); break;
 
 		case CMP_Zero_page_C5: CPr( cpu, cpu->a, cpu->read_memory( cpu->sys, operand ) ); ZeroPage(); break;
 		case CPX_Zero_page_E4: CPr( cpu, cpu->x, cpu->read_memory( cpu->sys, operand ) ); ZeroPage(); break;
