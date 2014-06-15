@@ -45,6 +45,8 @@ static const int opcode_length[ 0x100 ] = {
 /* $F0 */ 2,2,0,0,0,2,2,0,1,3,0,0,0,3,3,0
 };
 
+static inline char* Cpu6502_Get_addressing( Cpu6502 *cpu, char *string );
+
 // ----------------------------------------------------------------------------------------------------------------
 void Cpu6502_Disassemble( Cpu6502 *cpu )
 {
@@ -65,21 +67,20 @@ void Cpu6502_Disassemble( Cpu6502 *cpu )
 		printf( ".. .. " );
 	}
 
-	printf( " a:%02X x:%02X y:%02X sp:%02X  %c%c%c%c.%c%c%c  %s %s\n",
+	printf( " a:%02X x:%02X y:%02X sp:%02X  %c%c%c%c%c%c  %s %s\n",
 			 cpu->a, cpu->x, cpu->y, cpu->sp,
 			 ( cpu->status.zero ? 'z' : '.' ),
 			 ( cpu->status.negative ? 'n' : '.' ),
 			 ( cpu->status.carry ? 'c' : '.' ),
 			 ( cpu->status.overflow ? 'v' : '.' ),
-			 ( cpu->status.decimal_mode ? 'd' : '.' ),
 			 ( cpu->status.interrupt_disable ? 'i' : '.' ),
-			 ( cpu->status.break_command ? 'b' : '.' ),
+			 ( cpu->status.decimal_mode ? 'd' : '.' ),
 			 opcode_mnemonic[opcode],
 			 Cpu6502_Get_addressing( cpu, string ) );
 }
 
 // ----------------------------------------------------------------------------------------------------------------
-char* Cpu6502_Get_addressing( Cpu6502 *cpu, char *string )
+static inline char* Cpu6502_Get_addressing( Cpu6502 *cpu, char *string )
 {
 	byte opcode = cpu->read_memory( cpu->sys, cpu->pc );
 	byte operand = cpu->read_memory( cpu->sys, cpu->pc+1 );
@@ -118,7 +119,7 @@ char* Cpu6502_Get_addressing( Cpu6502 *cpu, char *string )
 		case LDA_Absolute_AD:		case LDX_Absolute_AE:		case LDY_Absolute_AC:		case AND_Absolute_2D:		case EOR_Absolute_4D:
 		case ORA_Absolute_0D:		case BIT_Absolute_2C:		case ADC_Absolute_6D:		case SBC_Absolute_ED:		case CMP_Absolute_CD:
 		case CPX_Absolute_EC:		case CPY_Absolute_CC:		case INC_Absolute_EE:		case DEC_Absolute_CE:		case ASL_Absolute_0E:
-		case LSR_Absolute_4E:		case ROL_Absolute_2E:		case ROR_Absolute_6E:		case JSR_Absolute_20:		case JMP_Absolute_4C:
+		case LSR_Absolute_4E:		case ROL_Absolute_2E:		case ROR_Absolute_6E:		case JSR_20:		case JMP_Absolute_4C:
 		case STA_Absolute_8D:		case STX_Absolute_8E:		case STY_Absolute_8C:
 			sprintf( string, "$%04X", address ); break;
 

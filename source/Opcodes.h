@@ -202,7 +202,7 @@ typedef enum // Cpu6502_opcodes
 		JMP_Indirect_6C						= 0x6C,
 		
 	// JSR - Jump to Subroutine
-		JSR_Absolute_20						= 0x20,
+		JSR_20								= 0x20,
 	
 	// RTS - Return from Subroutine
 		RTS_60								= 0x60,

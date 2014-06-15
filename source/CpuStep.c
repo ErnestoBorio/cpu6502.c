@@ -71,11 +71,6 @@ void Cpu6502_CpuStep( Cpu6502 *cpu )
 		case TYA_98: Trr( cpu, cpu->y, &cpu->a ); Implied(); break;
 		case TSX_BA: Trr( cpu, cpu->sp, &cpu->x ); Implied(); break;
 		case TXS_9A: Trr( cpu, cpu->x, &cpu->sp ); Implied(); break;
-		/*
-		case PHP_08:
-		case PHA_48:
-		case PLP_28:
-		case PLA_68: //*/
 
 		case AND_Immediate_29: AND( cpu, operand ); Immediate(); break;
 		case EOR_Immediate_49: EOR( cpu, operand ); Immediate(); break;
@@ -92,8 +87,6 @@ void Cpu6502_CpuStep( Cpu6502 *cpu )
 		case BVS_Relative_70: Branch( cpu, cpu->status.overflow, 1, operand ); break;
 		case BVC_Relative_50: Branch( cpu, cpu->status.overflow, 0, operand ); break;
 
-		case JMP_Absolute_4C: JMP( cpu, operand ); break;
-
 		case SEC_38: cpu->status.carry = 1; Implied(); break;
 		case CLC_18: cpu->status.carry = 0; Implied(); break;
 		case CLD_D8: cpu->status.decimal_mode = 0; Implied(); break;
@@ -102,7 +95,18 @@ void Cpu6502_CpuStep( Cpu6502 *cpu )
 		case CLI_58: cpu->status.interrupt_disable = 0; Implied(); break;
 		case CLV_B8: cpu->status.overflow = 0; Implied(); break;
 
-		defualt:
+		case PHP_08: PHP( cpu ); Implied(); break;
+		case PHA_48: push( cpu, cpu->a ); Implied(); break;
+		case PLP_28: PLP( cpu ); Implied(); break;
+		case PLA_68: PLA( cpu ); Implied(); break;
+
+		case JMP_Absolute_4C: JMP( cpu, operand ); break;
+		case JSR_20: JSR( cpu, operand ); break;
+		case RTS_60: RTS( cpu ); break;
+		case BRK_00: cpu->pc += 2; IRQ( cpu, 1 ); break; // The 6502 for some reason skips the byte following BRK
+		case RTI_40: RTI( cpu ); break;
+		case NOP_EA: Implied(); break;
+
 		default:
 			printf( "Opcode $%02X not implemented\n", opcode );
 			operand = operand;

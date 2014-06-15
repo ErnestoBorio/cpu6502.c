@@ -70,7 +70,6 @@ void Cpu6502_CpuStep( Cpu6502 *cpu );
 
 #ifdef _Cpu6502_Disassembler
 	void Cpu6502_Disassemble( Cpu6502 *cpu );
-	char* Cpu6502_Get_addressing( Cpu6502 *cpu, char *string );
 #endif
 
 #endif // #ifndef _Cpu6502_h_
