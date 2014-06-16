@@ -220,6 +220,15 @@ static void RTS( Cpu6502 *cpu )
 // -------------------------------------------------------------------------------
 static void IRQ( Cpu6502 *cpu, byte brk )
 {
+	#ifdef _Cpu6502_Disassembler
+	if( brk ) {
+		printf( "Software IRQ triggered (BRK)\n" );
+	}
+	else {
+		printf( "Hardware IRQ triggered\n" );
+	}
+	#endif
+
 	// WIP: If it's an IRQ, check for the interrupt disable flag
 	push( cpu, cpu->pc >>8 ); // pc's highbyte
 	push( cpu, cpu->pc & 0xFF ); // pc's lowbyte
@@ -237,10 +246,30 @@ static void RTI( Cpu6502 *cpu )
 	cpu->pc = pull( cpu ); // pc's lowbyte
 	cpu->pc |= pull( cpu ) <<8; // pc's highbyte
 }
+
 // -------------------------------------------------------------------------------
+void Cpu6502_IRQ( Cpu6502 *cpu )
+{
+	if( cpu->status.interrupt_disable )
+		return;
+	IRQ( cpu, 0 );
+}
 
-
-
+// -------------------------------------------------------------------------------
+void Cpu6502_NMI( Cpu6502 *cpu )
+{
+	#ifdef _Cpu6502_Disassembler
+		printf( "NMI Triggered\n" );
+	#endif
+	// WIP: If it's an IRQ, check for the interrupt disable flag
+	push( cpu, cpu->pc >>8 ); // pc's highbyte
+	push( cpu, cpu->pc & 0xFF ); // pc's lowbyte
+	push( cpu, pack_status( cpu, 0 ) );
+	cpu->status.interrupt_disable = 1;
+	cpu->pc = cpu->read_memory( cpu->sys, 0xFFFA ); // Jump to NMI vector
+	cpu->pc |= cpu->read_memory( cpu->sys, 0xFFFB ) <<8;
+}
+// -------------------------------------------------------------------------------
 
 
 

@@ -18,7 +18,7 @@ void Cpu6502_CpuStep( Cpu6502 *cpu )
 	byte operand = cpu->read_memory( cpu->sys, cpu->pc + 1 );
 
 	#ifdef _Cpu6502_Disassembler
-		Cpu6502_Disassemble( cpu );
+		Cpu6502_Disassemble( cpu, 0 );
 	#endif
 
 	// This addressing modes don't have a function, so this just updates the PC
@@ -76,7 +76,7 @@ void Cpu6502_CpuStep( Cpu6502 *cpu )
 		case EOR_Immediate_49: EOR( cpu, operand ); Immediate(); break;
 		case ORA_Immediate_09: ORA( cpu, operand ); Immediate(); break;
 		case BIT_Zero_page_24: BIT( cpu, cpu->read_memory( cpu->sys, operand ) ); ZeroPage(); break;
-		case BIT_Absolute_2C: BIT( cpu, Absolute( cpu, operand ) ); break;
+		case BIT_Absolute_2C: BIT( cpu, cpu->read_memory( cpu->sys, Absolute( cpu, operand ) ) ); break;
 
 		case BEQ_Relative_F0: Branch( cpu, cpu->status.zero, 1, operand ); break;
 		case BNE_Relative_D0: Branch( cpu, cpu->status.zero, 0, operand ); break;

@@ -21,7 +21,7 @@ static const char opcode_mnemonic[0x100][4] = {
 /* $B0 */ "BCS\0","LDA\0","...\0","...\0","LDY\0","LDA\0","LDX\0","...\0","CLV\0","LDA\0","TSX\0","...\0","LDY\0","LDA\0","LDX\0","...\0",
 /* $C0 */ "CPX\0","CMP\0","...\0","...\0","CPX\0","CMP\0","DEC\0","...\0","INY\0","CMP\0","DEX\0","...\0","CPX\0","CMP\0","DEC\0","...\0",
 /* $D0 */ "BNE\0","CMP\0","...\0","...\0","...\0","CMP\0","DEC\0","...\0","CLD\0","CMP\0","...\0","...\0","...\0","CMP\0","DEC\0","...\0",
-/* $E0 */ "CPX\0","SBC\0","...\0","...\0","CPX\0","SBC\0","INC\0","...\0","INX\0","SBC\0","NOP\0","...\0","CPX\0","SBC\0","INC\0","...\0",
+/* $E0 */ "CPX\0","SBC\0","...\0","...\0","CPX\0","SBC\0","INC\0","...\0","INX\0","SBC\0","~\0","...\0","CPX\0","SBC\0","INC\0","...\0",
 /* $F0 */ "BEQ\0","SBC\0","...\0","...\0","...\0","SBC\0","INC\0","...\0","SED\0","SBC\0","...\0","...\0","...\0","SBC\0","INC\0","..."
 };
 
@@ -48,7 +48,7 @@ static const int opcode_length[ 0x100 ] = {
 static inline char* Cpu6502_Get_addressing( Cpu6502 *cpu, char *string );
 
 // ----------------------------------------------------------------------------------------------------------------
-void Cpu6502_Disassemble( Cpu6502 *cpu )
+void Cpu6502_Disassemble( Cpu6502 *cpu, byte hide_instruction )
 {
 	cpu->instruction_count++;
 
@@ -67,7 +67,7 @@ void Cpu6502_Disassemble( Cpu6502 *cpu )
 		printf( ".. .. " );
 	}
 
-	printf( " a:%02X x:%02X y:%02X sp:%02X  %c%c%c%c%c%c  %s %s\n",
+	printf( " a:%02X x:%02X y:%02X sp:%02X  %c%c%c%c%c%c [%02X %02X %02X] ",
 			 cpu->a, cpu->x, cpu->y, cpu->sp,
 			 ( cpu->status.zero ? 'z' : '.' ),
 			 ( cpu->status.negative ? 'n' : '.' ),
@@ -75,8 +75,20 @@ void Cpu6502_Disassemble( Cpu6502 *cpu )
 			 ( cpu->status.overflow ? 'v' : '.' ),
 			 ( cpu->status.interrupt_disable ? 'i' : '.' ),
 			 ( cpu->status.decimal_mode ? 'd' : '.' ),
-			 opcode_mnemonic[opcode],
-			 Cpu6502_Get_addressing( cpu, string ) );
+			 cpu->stack[0xFF],
+			 cpu->stack[0xFE],
+			 cpu->stack[0xFD] );
+
+	if( ! hide_instruction ) {
+		printf( "%s %s\n", opcode_mnemonic[opcode], Cpu6502_Get_addressing( cpu, string ) );
+	}
+	else {
+		printf( "...\n" );
+	}
+
+	if( opcode == RTI_40 ) {
+		printf( "Return from interrupt\n" );
+	}
 }
 
 // ----------------------------------------------------------------------------------------------------------------
@@ -147,7 +159,7 @@ static inline char* Cpu6502_Get_addressing( Cpu6502 *cpu, char *string )
 			sprintf( string, "A" ); break;
 
 		default: // Default cases includes both implied addressing and illegal opcodes. For now just return an empty string
-			string[0] = 0;
+			string[0] = '\0';
 	}
 
 	return string;

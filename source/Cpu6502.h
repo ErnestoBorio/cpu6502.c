@@ -35,6 +35,8 @@ typedef struct // Cpu6502
 
 	void *sys; // Pointer to the parent system, E.G.: C64, NES, VCS, BBC
 
+	byte *stack; // Pointer to the stack, at memory page 1 [$100..$1FF]
+
 	// Pointers to external memory access functions provided by the parent system
 	byte (*read_memory)( void *parent_system, word address );
 	void (*write_memory)( void *parent_system, word address, byte value );
@@ -47,8 +49,9 @@ typedef struct // Cpu6502
 
 // -------------------------------------------------------------------------------
 // Factory constructor
-Cpu6502 *Cpu6502_Create(
+Cpu6502* Cpu6502_Create(
 	void *parent_system,
+	byte *stack_pointer,
 	byte (*read_memory)( void *parent_system, word address ),
 	void (*write_memory)( void *parent_system, word address, byte value ) );
 
@@ -58,8 +61,11 @@ void Cpu6502_Free( Cpu6502 *cpu );
 // Executes the next instruction pointed to by the program counter
 void Cpu6502_CpuStep( Cpu6502 *cpu );
 
+void Cpu6502_IRQ( Cpu6502 *cpu );
+void Cpu6502_NMI( Cpu6502 *cpu );
+
 #ifdef _Cpu6502_Disassembler
-	void Cpu6502_Disassemble( Cpu6502 *cpu );
+	void Cpu6502_Disassemble( Cpu6502 *cpu, byte hide_instruction );
 #endif
 
 #endif // #ifndef _Cpu6502_h_

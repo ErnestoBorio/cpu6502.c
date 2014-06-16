@@ -9,8 +9,9 @@ void Cpu6502_Free( Cpu6502 *cpu )
 }
 
 // -------------------------------------------------------------------------------
-Cpu6502 *Cpu6502_Create(
+Cpu6502* Cpu6502_Create(
 	void *parent_system,
+	byte *stack_pointer,
 	byte (*read_memory)( void *sys, word address ),
 	void (*write_memory)( void *sys, word address, byte value ) )
 {
@@ -22,6 +23,7 @@ Cpu6502 *Cpu6502_Create(
 	cpu->sys = parent_system;
 	cpu->read_memory = read_memory;
 	cpu->write_memory = write_memory;
+	cpu->stack = stack_pointer;
 
 	return cpu;
 }
