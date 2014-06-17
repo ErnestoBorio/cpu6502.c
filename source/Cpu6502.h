@@ -4,6 +4,11 @@
 
 #define _Cpu6502_Disassembler // compiles the disassembler
 
+#ifndef false
+	#define false 0
+	#define true ! false
+#endif
+
 #include <assert.h>
 #include "Opcodes.h"
 
@@ -24,7 +29,7 @@ typedef struct // Cpu6502
 	byte x; // Index register x
 	byte y; // Index register y
 	
-	struct Cpu6502_status { // Flags, 0 = false, 1 = true
+	struct { // Flags, 0 = false, 1 = true
 		byte carry;
 		byte zero;
 		byte interrupt_disable;
@@ -57,6 +62,9 @@ Cpu6502* Cpu6502_Create(
 
 // Destructor
 void Cpu6502_Free( Cpu6502 *cpu );
+
+void Cpu6502_Initialize( Cpu6502 *cpu );
+void Cpu6502_Reset( Cpu6502 *cpu );
 
 // Executes the next instruction pointed to by the program counter
 void Cpu6502_CpuStep( Cpu6502 *cpu );
