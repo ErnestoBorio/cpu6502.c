@@ -1,7 +1,13 @@
 
 #include "Cpu6502.h"
-/* All instructions are static to mimic private methods that are not needed in the 
-	public interface of Cpu6502 */
+/* 
+ All instructions are static to mimic private methods that are not needed in the 
+	public interface of Cpu6502.
+ 
+ This file is to be included in CpuStep.c
+ 
+ Instructions as seen in http://www.obelisk.demon.co.uk/6502/
+ */
 
 static inline void push( Cpu6502 *cpu, byte value );
 static inline byte pull( Cpu6502 *cpu );
@@ -14,11 +20,20 @@ static void LDr( Cpu6502 *cpu, byte *registre, byte value ) // LDA, LDX, LDY
 	cpu->status.negative = ( value & sign_bit ) != 0;
 }
 // -------------------------------------------------------------------------------
-static void DeInXY( Cpu6502 *cpu, byte *registre, signed int delta ) // INX, DEX, INY, DEY
+static void DeInXY( Cpu6502 *cpu, byte *registre, int delta ) // INX, DEX, INY, DEY
 {
 	*registre += delta;
 	cpu->status.zero = ( *registre == 0 );
 	cpu->status.negative = ( *registre & sign_bit ) != 0;
+}
+// -------------------------------------------------------------------------------
+static void IncDec( Cpu6502 *cpu, word address, int delta )
+{
+	byte value = cpu->read_memory( cpu->sys, address );
+	value += delta;
+	cpu->write_memory( cpu->sys, address, value );
+	cpu->status.zero = ( value == 0 );
+	cpu->status.negative = ( value & sign_bit ) != 0;
 }
 // -------------------------------------------------------------------------------
 static void ADC( Cpu6502 *cpu, byte value )
@@ -128,7 +143,7 @@ static void Branch( Cpu6502 *cpu, byte flag, byte condition, byte jump )
 		cpu->pc += 2;
 }
 // -------------------------------------------------------------------------------
-static void JMP( Cpu6502 *cpu, byte address_lowbyte )
+static void JMPabs( Cpu6502 *cpu, byte address_lowbyte )
 {
 	word address = address_lowbyte;
 	address |= cpu->read_memory( cpu->sys, cpu->pc + 2 ) <<8; // high byte
@@ -235,7 +250,8 @@ static void IRQ( Cpu6502 *cpu, byte brk )
 	push( cpu, pack_status( cpu, brk ) );
 	// WIP: DarcNES unsets decimal flag here, other sources don't
 	// "NMOS 6502 do not clear the decimal mode flag when an interrupt occurs". Other 6502s do?
-	cpu->status.interrupt_disable = 1;
+	cpu->status.interrupt_disable = 1; // 
+	cpu->status.decimal_mode = 0; // Marat Fayzullin and others do this
 	cpu->pc = cpu->read_memory( cpu->sys, 0xFFFE ); // Jump to IRQ/BRK vector
 	cpu->pc |= cpu->read_memory( cpu->sys, 0xFFFF ) <<8;
 }
@@ -265,7 +281,8 @@ void Cpu6502_NMI( Cpu6502 *cpu )
 	push( cpu, cpu->pc >>8 ); // pc's highbyte
 	push( cpu, cpu->pc & 0xFF ); // pc's lowbyte
 	push( cpu, pack_status( cpu, 0 ) );
-	cpu->status.interrupt_disable = 1;
+	cpu->status.interrupt_disable = 1; // WIP: Marat Fayzullin doesn't do this
+	cpu->status.decimal_mode = 0; // Marat Fayzullin and others do this
 	cpu->pc = cpu->read_memory( cpu->sys, 0xFFFA ); // Jump to NMI vector
 	cpu->pc |= cpu->read_memory( cpu->sys, 0xFFFB ) <<8;
 }

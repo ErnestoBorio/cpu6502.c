@@ -1,7 +1,13 @@
 
 #include "Cpu6502.h"
-/* All addressing modes are static to mimic private methods that are 
-	not needed in the public interface of Cpu6502 */
+/* 
+ All addressing modes are static to mimic private methods that are 
+	not needed in the public interface of Cpu6502.
+ 
+ This file is to be included in CpuStep.c
+ 
+ Instructions as seen in http://www.obelisk.demon.co.uk/6502/
+ */
 
 // -------------------------------------------------------------------------------
 static word Relative( Cpu6502 *cpu, byte jump )
@@ -26,3 +32,6 @@ static word Absolute( Cpu6502 *cpu, byte address_lowbyte )
 }
 
 // -------------------------------------------------------------------------------
+
+// -------------------------------------------------------------------------------
+
