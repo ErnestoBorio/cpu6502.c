@@ -49,6 +49,10 @@ void Cpu6502_CpuStep( Cpu6502 *cpu )
 		case LDA_Absolute_AD: LDr( cpu, &cpu->a, Absolute( cpu, operand ) ); break;
 		case LDX_Absolute_AE: LDr( cpu, &cpu->x, Absolute( cpu, operand ) ); break;
 		case LDY_Absolute_AC: LDr( cpu, &cpu->y, Absolute( cpu, operand ) ); break;
+		case LDA_Absolute_X_BD: LDr( cpu, &cpu->a, Absolute_Indexed( cpu, operand, cpu->x ) ); break;
+		case LDY_Absolute_X_BC: LDr( cpu, &cpu->y, Absolute_Indexed( cpu, operand, cpu->x ) ); break;
+		case LDA_Absolute_Y_B9: LDr( cpu, &cpu->a, Absolute_Indexed( cpu, operand, cpu->y ) ); break;
+		case LDX_Absolute_Y_BE: LDr( cpu, &cpu->x, Absolute_Indexed( cpu, operand, cpu->y ) ); break;
 
 		case STA_Zero_page_85: STr( operand, cpu->a ); _ZeroPage(); break;
 		case STX_Zero_page_86: STr( operand, cpu->x ); _ZeroPage(); break;
@@ -59,6 +63,8 @@ void Cpu6502_CpuStep( Cpu6502 *cpu )
 		case STA_Absolute_8D: STr( Absolute_adr( cpu, operand ), cpu->a ); break;
 		case STX_Absolute_8E: STr( Absolute_adr( cpu, operand ), cpu->x ); break;
 		case STY_Absolute_8C: STr( Absolute_adr( cpu, operand ), cpu->y ); break;
+		case STA_Absolute_X_9D: STr( Absolute_Indexed_adr( cpu, operand, cpu->x ), cpu->a ); break;
+		case STA_Absolute_Y_99: STr( Absolute_Indexed_adr( cpu, operand, cpu->y ), cpu->a ); break;
 			
 		case INX_E8: DeInXY( cpu, &cpu->x, +1 ); _Implied(); break;
 		case DEX_CA: DeInXY( cpu, &cpu->x, -1 ); _Implied(); break;
@@ -79,7 +85,11 @@ void Cpu6502_CpuStep( Cpu6502 *cpu )
 		case SBC_Zero_page_X_F5: SBC( cpu, ZeroPageX() ); _ZeroPageX(); break;
 		case ADC_Absolute_6D: ADC( cpu, Absolute( cpu, operand ) ); break;
 		case SBC_Absolute_ED: SBC( cpu, Absolute( cpu, operand ) ); break;
-
+		case ADC_Absolute_X_7D: ADC( cpu, Absolute_Indexed( cpu, operand, cpu->x ) ); break;
+		case SBC_Absolute_X_FD: SBC( cpu, Absolute_Indexed( cpu, operand, cpu->x ) ); break;
+		case ADC_Absolute_Y_79: ADC( cpu, Absolute_Indexed( cpu, operand, cpu->y ) ); break;
+		case SBC_Absolute_Y_F9: SBC( cpu, Absolute_Indexed( cpu, operand, cpu->y ) ); break;
+					
 		case CMP_Immediate_C9: CPr( cpu, cpu->a, operand ); _Immediate(); break;
 		case CPX_Immediate_E0: CPr( cpu, cpu->x, operand ); _Immediate(); break;
 		case CPY_Immediate_C0: CPr( cpu, cpu->y, operand ); _Immediate(); break;
@@ -90,7 +100,9 @@ void Cpu6502_CpuStep( Cpu6502 *cpu )
 		case CMP_Absolute_CD: CPr( cpu, cpu->a, Absolute( cpu, operand ) ); break;
 		case CPX_Absolute_EC: CPr( cpu, cpu->x, Absolute( cpu, operand ) ); break;
 		case CPY_Absolute_CC: CPr( cpu, cpu->y, Absolute( cpu, operand ) ); break;
-
+		case CMP_Absolute_X_DD: CPr( cpu, cpu->a, Absolute_Indexed( cpu, operand, cpu->x ) ); break;
+		case CMP_Absolute_Y_D9: CPr( cpu, cpu->a, Absolute_Indexed( cpu, operand, cpu->y ) ); break;
+			
 		case ASL_Zero_page_06: ASL( cpu, operand ); _ZeroPage(); break;
 		case LSR_Zero_page_46: LSR( cpu, operand ); _ZeroPage(); break;
 		case ROL_Zero_page_26: ROL( cpu, operand ); _ZeroPage(); break;
@@ -103,6 +115,10 @@ void Cpu6502_CpuStep( Cpu6502 *cpu )
 		case LSR_Absolute_4E: LSR( cpu, Absolute_adr( cpu, operand ) ); break;
 		case ROL_Absolute_2E: ROL( cpu, Absolute_adr( cpu, operand ) ); break;
 		case ROR_Absolute_6E: ROR( cpu, Absolute_adr( cpu, operand ) ); break;
+		case ASL_Absolute_X_1E: ASL( cpu, Absolute_Indexed_adr( cpu, operand, cpu->x ) ); break;
+		case LSR_Absolute_X_5E: LSR( cpu, Absolute_Indexed_adr( cpu, operand, cpu->x ) ); break;
+		case ROL_Absolute_X_3E: ROL( cpu, Absolute_Indexed_adr( cpu, operand, cpu->x ) ); break;
+		case ROR_Absolute_X_7E: ROR( cpu, Absolute_Indexed_adr( cpu, operand, cpu->x ) ); break;
 
 		case TAX_AA: Trr( cpu, cpu->a, &cpu->x ); _Implied(); break;
 		case TAY_A8: Trr( cpu, cpu->a, &cpu->y ); _Implied(); break;
@@ -125,6 +141,12 @@ void Cpu6502_CpuStep( Cpu6502 *cpu )
 		case EOR_Absolute_4D: EOR( cpu, Absolute( cpu, operand ) ); break;
 		case ORA_Absolute_0D: ORA( cpu, Absolute( cpu, operand ) ); break;
 		case BIT_Absolute_2C: BIT( cpu, Absolute( cpu, operand ) ); break;
+		case AND_Absolute_X_3D: AND( cpu, Absolute_Indexed( cpu, operand, cpu->x ) ); break;
+		case EOR_Absolute_X_5D: EOR( cpu, Absolute_Indexed( cpu, operand, cpu->x ) ); break;
+		case ORA_Absolute_X_1D: ORA( cpu, Absolute_Indexed( cpu, operand, cpu->x ) ); break;
+		case AND_Absolute_Y_39: AND( cpu, Absolute_Indexed( cpu, operand, cpu->y ) ); break;
+		case EOR_Absolute_Y_59: EOR( cpu, Absolute_Indexed( cpu, operand, cpu->y ) ); break;
+		case ORA_Absolute_Y_19: ORA( cpu, Absolute_Indexed( cpu, operand, cpu->y ) ); break;
 			
 		case BEQ_Relative_F0: Branch( cpu, cpu->status.zero, 1, operand ); break;
 		case BNE_Relative_D0: Branch( cpu, cpu->status.zero, 0, operand ); break;

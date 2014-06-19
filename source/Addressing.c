@@ -9,6 +9,8 @@
  Instructions as seen in http://www.obelisk.demon.co.uk/6502/
  */
 
+#define get_operand2_high() ( cpu->read_memory( cpu->sys, cpu->pc + 2 ) <<8 )
+
 // -------------------------------------------------------------------------------
 static word Relative( Cpu6502 *cpu, byte jump )
 {
@@ -26,7 +28,7 @@ static word Relative( Cpu6502 *cpu, byte jump )
 static word Absolute_adr( Cpu6502 *cpu, byte address_lowbyte )
 {
 	word address = address_lowbyte;
-	address |= cpu->read_memory( cpu->sys, cpu->pc + 2 ) <<8;
+	address |= get_operand2_high();
 	cpu->pc += 3;
 	return address;
 }
@@ -35,10 +37,43 @@ static word Absolute_adr( Cpu6502 *cpu, byte address_lowbyte )
 static byte Absolute( Cpu6502 *cpu, byte address_lowbyte )
 {
 	word address = address_lowbyte;
-	address |= cpu->read_memory( cpu->sys, cpu->pc + 2 ) <<8;
+	address |= get_operand2_high();
 	cpu->pc += 3;
 	return cpu->read_memory( cpu->sys, address );
 }
 
 // -------------------------------------------------------------------------------
+static word Absolute_Indexed_adr( Cpu6502 *cpu, byte address_lowbyte, byte index )
+{
+	word address = address_lowbyte + index;
+	//WIP: if( address_lowbyte + index > 0xFF ) then cycles++
+	address += get_operand2_high();
+	cpu->pc += 3;
+	return address;
+}
+
+// -------------------------------------------------------------------------------
+static word Absolute_Indexed( Cpu6502 *cpu, byte address_lowbyte, byte index )
+{
+	word address = address_lowbyte + index;
+	//WIP: if( address_lowbyte + index > 0xFF ) then cycles++
+	address += get_operand2_high();
+	cpu->pc += 3;
+	return cpu->read_memory( cpu->sys, address );
+}
+
+// -------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
 
