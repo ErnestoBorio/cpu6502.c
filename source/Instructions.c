@@ -7,6 +7,11 @@
  This file is to be included in CpuStep.c
  
  Instructions as seen in http://www.obelisk.demon.co.uk/6502/
+ 
+ WIP: At this stage, unfixed address reads, redundant and dummy reads and writes won't be implemented.
+ Analyze the impact of this. Watch for cases where this attempts could produce second effects, namely
+ if they would hit memory-mapped registers in the parent system. This is not likely though, as
+ careful programmers should've been aware and avoid this unorthodox ways.
  */
 
 static inline void push( Cpu6502 *cpu, byte value );
@@ -249,9 +254,9 @@ static void IRQ( Cpu6502 *cpu, byte brk )
 	push( cpu, cpu->pc & 0xFF ); // pc's lowbyte
 	push( cpu, pack_status( cpu, brk ) );
 	// WIP: DarcNES unsets decimal flag here, other sources don't
-	// "NMOS 6502 do not clear the decimal mode flag when an interrupt occurs". Other 6502s do?
-	cpu->status.interrupt_disable = 1; // 
+	// "NMOS 6502 do not clear the decimal mode flag when an interrupt occurs". Other 6502s do?	
 	cpu->status.decimal_mode = 0; // Marat Fayzullin and others do this
+	cpu->status.interrupt_disable = 1;
 	cpu->pc = cpu->read_memory( cpu->sys, 0xFFFE ); // Jump to IRQ/BRK vector
 	cpu->pc |= cpu->read_memory( cpu->sys, 0xFFFF ) <<8;
 }
@@ -280,9 +285,9 @@ void Cpu6502_NMI( Cpu6502 *cpu )
 	// WIP: If it's an IRQ, check for the interrupt disable flag
 	push( cpu, cpu->pc >>8 ); // pc's highbyte
 	push( cpu, cpu->pc & 0xFF ); // pc's lowbyte
-	push( cpu, pack_status( cpu, 0 ) );
-	cpu->status.interrupt_disable = 1; // WIP: Marat Fayzullin doesn't do this
+	push( cpu, pack_status( cpu, 0 ) );	
 	cpu->status.decimal_mode = 0; // Marat Fayzullin and others do this
+	cpu->status.interrupt_disable = 1; // WIP: Marat Fayzullin doesn't do this
 	cpu->pc = cpu->read_memory( cpu->sys, 0xFFFA ); // Jump to NMI vector
 	cpu->pc |= cpu->read_memory( cpu->sys, 0xFFFB ) <<8;
 }

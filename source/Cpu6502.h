@@ -50,6 +50,11 @@ typedef struct // Cpu6502
 	byte (*read_memory)( void *parent_system, word address );
 	void (*write_memory)( void *parent_system, word address, byte value );
 
+#ifdef _Cpu6502_Disassembler
+		// this is used by the disassembler, should not produce side effects:
+	byte (*read_memory_disasm)( void *parent_system, word address );
+#endif
+
 	#ifdef _Cpu6502_Disassembler
 		unsigned long int instruction_count;
 	#endif
@@ -62,7 +67,11 @@ Cpu6502* Cpu6502_Create(
 	void *parent_system,
 	byte *stack_pointer,
 	byte (*read_memory)( void *parent_system, word address ),
-	void (*write_memory)( void *parent_system, word address, byte value ) );
+	void (*write_memory)( void *parent_system, word address, byte value )
+#ifdef _Cpu6502_Disassembler								
+	, byte (*read_memory_disasm)( void *parent_system, word address )
+#endif
+);
 
 // Destructor
 void Cpu6502_Free( Cpu6502 *cpu );

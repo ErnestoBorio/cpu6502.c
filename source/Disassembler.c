@@ -53,13 +53,13 @@ void Cpu6502_Disassemble( Cpu6502 *cpu, byte hide_instruction )
 	cpu->instruction_count++;
 
 	char string[256];
-	byte opcode = cpu->read_memory( cpu->sys, cpu->pc );
+	byte opcode = cpu->read_memory_disasm( cpu->sys, cpu->pc );
 	printf( "pc:%04X  %02X ", cpu->pc, opcode );
 
 	if( opcode_length[opcode] > 1 ) {
-		printf( "%02X ", cpu->read_memory( cpu->sys, cpu->pc+1 ) );
+		printf( "%02X ", cpu->read_memory_disasm( cpu->sys, cpu->pc+1 ) );
 		if( opcode_length[opcode] > 2 ) {
-			printf( "%02X ", cpu->read_memory( cpu->sys, cpu->pc+2 ) );
+			printf( "%02X ", cpu->read_memory_disasm( cpu->sys, cpu->pc+2 ) );
 		} else {
 			printf( ".. " );
 		}
@@ -67,7 +67,7 @@ void Cpu6502_Disassemble( Cpu6502 *cpu, byte hide_instruction )
 		printf( ".. .. " );
 	}
 
-	printf( " a:%02X x:%02X y:%02X sp:%02X  %c%c%c%c%c%c [%02X %02X %02X] ",
+	printf( " a:%02X x:%02X y:%02X sp:%02X  %c%c%c%c%c%c [%02X,%02X,%02X} ",
 			 cpu->a, cpu->x, cpu->y, cpu->sp,
 			 ( cpu->status.zero ? 'z' : '.' ),
 			 ( cpu->status.negative ? 'n' : '.' ),

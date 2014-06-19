@@ -13,7 +13,11 @@ Cpu6502* Cpu6502_Create(
 	void *parent_system,
 	byte *stack_pointer,
 	byte (*read_memory)( void *sys, word address ),
-	void (*write_memory)( void *sys, word address, byte value ) )
+	void (*write_memory)( void *sys, word address, byte value )
+#ifdef _Cpu6502_Disassembler								
+	, byte (*read_memory_disasm)( void *parent_system, word address )
+#endif
+	)
 {
 	Cpu6502 *cpu = (Cpu6502*) malloc( sizeof( Cpu6502 ) );
 	if( cpu == NULL ) {
@@ -24,6 +28,10 @@ Cpu6502* Cpu6502_Create(
 	cpu->read_memory = read_memory;
 	cpu->write_memory = write_memory;
 	cpu->stack = stack_pointer;
+
+#ifdef _Cpu6502_Disassembler
+	cpu->read_memory_disasm = read_memory_disasm;
+#endif
 
 	return cpu;
 }

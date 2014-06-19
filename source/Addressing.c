@@ -23,7 +23,7 @@ static word Relative( Cpu6502 *cpu, byte jump )
 }
 
 // -------------------------------------------------------------------------------
-static word Absolute( Cpu6502 *cpu, byte address_lowbyte )
+static word Absolute_adr( Cpu6502 *cpu, byte address_lowbyte )
 {
 	word address = address_lowbyte;
 	address |= cpu->read_memory( cpu->sys, cpu->pc + 2 ) <<8;
@@ -32,6 +32,13 @@ static word Absolute( Cpu6502 *cpu, byte address_lowbyte )
 }
 
 // -------------------------------------------------------------------------------
+static byte Absolute( Cpu6502 *cpu, byte address_lowbyte )
+{
+	word address = address_lowbyte;
+	address |= cpu->read_memory( cpu->sys, cpu->pc + 2 ) <<8;
+	cpu->pc += 3;
+	return cpu->read_memory( cpu->sys, address );
+}
 
 // -------------------------------------------------------------------------------
 
