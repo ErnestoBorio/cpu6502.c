@@ -171,7 +171,7 @@ void Cpu6502_CpuStep( Cpu6502 *cpu )
 		case PLA_68: PLA( cpu ); _Implied(); break;
 
 		case JMP_Absolute_4C: JMPabs( cpu, operand ); break;
-		//case JMP_Indirect_6C:
+		case JMP_Indirect_6C: JMPind( cpu, operand ); break;
 		case JSR_20: JSR( cpu, operand ); break;
 		case RTS_60: RTS( cpu ); break;
 		case BRK_00: cpu->pc += 2; IRQ( cpu, 1 ); break; // The 6502 for some reason skips the byte following BRK

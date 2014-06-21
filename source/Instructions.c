@@ -155,6 +155,14 @@ static void JMPabs( Cpu6502 *cpu, byte address_lowbyte )
 	cpu->pc = address;
 }
 // -------------------------------------------------------------------------------
+static void JMPind( Cpu6502 *cpu, byte ptr_lowbyte )
+{
+	word ptr_highbyte = cpu->read_memory( cpu->sys, cpu->pc + 2 ) <<8;	
+	cpu->pc = cpu->read_memory( cpu->sys, ptr_highbyte | ptr_lowbyte );
+	ptr_lowbyte++;
+	cpu->pc |= cpu->read_memory( cpu->sys, ptr_highbyte | ptr_lowbyte ) <<8;
+}
+// -------------------------------------------------------------------------------
 static void Trr( Cpu6502 *cpu, byte reg_from, byte *reg_to ) // TAX, TAY, TXA, TYA
 {
 	*reg_to = reg_from;
