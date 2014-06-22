@@ -143,9 +143,18 @@ static void BIT( Cpu6502 *cpu, byte value )
 static void Branch( Cpu6502 *cpu, byte flag, byte condition, byte jump )
 {
 	if( flag == condition )
-		cpu->pc = Relative( cpu, jump );
-	else
+	{
+		cpu->pc += 2;  // The branch is relative to the next instruction's address
+		if( jump & sign_bit ) { // relative jump is negative
+			cpu->pc += ( (word)jump - 0x100 ); // subtract jump's 2's complement
+		}
+		else {
+			cpu->pc += jump;
+		}
+	}
+	else {
 		cpu->pc += 2;
+	}
 }
 // -------------------------------------------------------------------------------
 static void JMPabs( Cpu6502 *cpu, byte address_lowbyte )

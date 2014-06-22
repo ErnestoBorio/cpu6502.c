@@ -12,19 +12,6 @@
 #define get_operand2_high() ( cpu->read_memory( cpu->sys, cpu->pc + 2 ) <<8 )
 
 // -------------------------------------------------------------------------------
-static word Relative( Cpu6502 *cpu, byte jump ) // BEQ $HH
-{
-	word address = cpu->pc + 2;  // The branch is relative to the next instruction's address
-	if( jump & sign_bit ) { // relative jump is negative
-		address += ( (word)jump - 0x100 ); // subtract jump's 2's complement
-	}
-	else {
-		address += jump;
-	}
-	return address;
-}
-
-// -------------------------------------------------------------------------------
 static word Absolute_adr( Cpu6502 *cpu, byte address_lowbyte ) // STA $HHHH
 {
 	word address = address_lowbyte;
