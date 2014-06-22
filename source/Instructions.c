@@ -34,6 +34,7 @@ static void DeInXY( Cpu6502 *cpu, byte *registre, int delta ) // INX, DEX, INY, 
 // -------------------------------------------------------------------------------
 static void IncDec( Cpu6502 *cpu, word address, int delta )
 {
+	cpu->cycles += 2;
 	byte value = cpu->read_memory( cpu->sys, address );
 	value += delta;
 	cpu->write_memory( cpu->sys, address, value );
@@ -64,6 +65,7 @@ static void SBC( Cpu6502 *cpu, byte value )
 // -------------------------------------------------------------------------------
 static void ASL( Cpu6502 *cpu, word address )
 {
+	cpu->cycles += 2;
 	byte value = cpu->read_memory( cpu->sys, address );
 	cpu->status.carry = value & bit7;
 	value = value <<1;
@@ -74,6 +76,7 @@ static void ASL( Cpu6502 *cpu, word address )
 // -------------------------------------------------------------------------------
 static void LSR( Cpu6502 *cpu, word address )
 {
+	cpu->cycles += 2;
 	byte value = cpu->read_memory( cpu->sys, address );
 	cpu->status.carry = value & bit0;
 	value = value >>1;
@@ -84,6 +87,7 @@ static void LSR( Cpu6502 *cpu, word address )
 // -------------------------------------------------------------------------------
 static void ROL( Cpu6502 *cpu, word address )
 {
+	cpu->cycles += 2;
 	byte value = cpu->read_memory( cpu->sys, address );
 	byte old_carry = cpu->status.carry;
 	cpu->status.carry = value & bit7;
@@ -95,6 +99,7 @@ static void ROL( Cpu6502 *cpu, word address )
 // -------------------------------------------------------------------------------
 static void ROR( Cpu6502 *cpu, word address )
 {
+	cpu->cycles += 2;
 	byte value = cpu->read_memory( cpu->sys, address );
 	byte old_carry = cpu->status.carry;
 	cpu->status.carry = value & bit7;
@@ -142,14 +147,20 @@ static void BIT( Cpu6502 *cpu, byte value )
 // BEQ, BNE, BPL, BMI, BVS, BVC, BCS, BCC
 static void Branch( Cpu6502 *cpu, byte flag, byte condition, byte jump )
 {
+	cpu->cycles = 2;
 	if( flag == condition )
 	{
+		cpu->cycles += 1; // extra cycle for taking the branch
 		cpu->pc += 2;  // The branch is relative to the next instruction's address
+		byte pc_page = cpu->pc >>8;
 		if( jump & sign_bit ) { // relative jump is negative
 			cpu->pc += ( (word)jump - 0x100 ); // subtract jump's 2's complement
 		}
 		else {
 			cpu->pc += jump;
+		}
+		if( pc_page != cpu->pc >>8 ) {
+			cpu->cycles += 1; // extra cycle for crossing page boundary
 		}
 	}
 	else {
@@ -159,6 +170,7 @@ static void Branch( Cpu6502 *cpu, byte flag, byte condition, byte jump )
 // -------------------------------------------------------------------------------
 static void JMPabs( Cpu6502 *cpu, byte address_lowbyte )
 {
+	cpu->cycles = 3;
 	word address = address_lowbyte;
 	address |= cpu->read_memory( cpu->sys, cpu->pc + 2 ) <<8; // high byte
 	cpu->pc = address;
@@ -166,6 +178,7 @@ static void JMPabs( Cpu6502 *cpu, byte address_lowbyte )
 // -------------------------------------------------------------------------------
 static void JMPind( Cpu6502 *cpu, byte ptr_lowbyte )
 {
+	cpu->cycles = 5;
 	word ptr_highbyte = cpu->read_memory( cpu->sys, cpu->pc + 2 ) <<8;	
 	cpu->pc = cpu->read_memory( cpu->sys, ptr_highbyte | ptr_lowbyte );
 	ptr_lowbyte++;
@@ -196,6 +209,7 @@ static inline byte pull( Cpu6502 *cpu )
 // ---------------------------------------
 static void PLA( Cpu6502 *cpu )
 {
+	cpu->cycles = 2;
 	cpu->a = pull( cpu );
 	cpu->status.zero = ( cpu->a == 0 );
 	cpu->status.negative = ( cpu->a & sign_bit ) != 0;
@@ -216,6 +230,7 @@ static inline byte pack_status( Cpu6502 *cpu, byte break_flag )
 // ---------------------------------------
 static void PHP( Cpu6502 *cpu )
 {
+	cpu->cycles = 1;
 	// WIP: According to Brad Taylor's http://nesdev.com/the%20'B'%20flag%20&%20BRK%20instruction.txt
 	// PHP pushes the break flag as 1
 	push( cpu, pack_status( cpu, 1 ) );
@@ -234,11 +249,13 @@ static inline void unpack_status( Cpu6502 *cpu, byte status )
 // ---------------------------------------
 static void PLP( Cpu6502 *cpu )
 {
+	cpu->cycles = 2;
 	unpack_status( cpu, pull( cpu ) );
 }
 // -------------------------------------------------------------------------------
 static void JSR( Cpu6502 *cpu, byte address_lowbyte )
 {
+	cpu->cycles = 6;
 	cpu->pc += 2; // PC is off by -1, pointing to JSR's last byte. Will be corrected on RTS
 	push( cpu, cpu->pc >>8 ); // pc's highbyte
 	push( cpu, cpu->pc & 0xFF ); // pc's lowbyte
@@ -250,6 +267,7 @@ static void JSR( Cpu6502 *cpu, byte address_lowbyte )
 // -------------------------------------------------------------------------------
 static void RTS( Cpu6502 *cpu )
 {
+	cpu->cycles = 6;
 	cpu->pc = pull( cpu ); // pc's lowbyte
 	cpu->pc |= pull( cpu ) <<8; // pc's highbyte
 	cpu->pc++; // Fix JSR's off by -1 error
@@ -280,6 +298,7 @@ static void IRQ( Cpu6502 *cpu, byte brk )
 // -------------------------------------------------------------------------------
 static void RTI( Cpu6502 *cpu )
 {
+	cpu->cycles = 6;
 	unpack_status( cpu, pull( cpu ) );
 	cpu->pc = pull( cpu ); // pc's lowbyte
 	cpu->pc |= pull( cpu ) <<8; // pc's highbyte

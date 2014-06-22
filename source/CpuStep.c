@@ -11,11 +11,11 @@
 #include "Instructions.c"
 
 // This addressing modes don't have a function, so this just updates the PC
-#define _Implied()	cpu->pc += 1
-#define _Immediate()	cpu->pc += 2
-#define _ZeroPage()	cpu->pc += 2
-#define _ZeroPageX()	cpu->pc += 2
-#define _ZeroPageY()	cpu->pc += 2
+#define _Implied()	cpu->pc += 1; cpu->cycles += 2;
+#define _Immediate()	cpu->pc += 2; cpu->cycles += 2;
+#define _ZeroPage()	cpu->pc += 2; cpu->cycles += 3;
+#define _ZeroPageX()	cpu->pc += 2; cpu->cycles += 4;
+#define _ZeroPageY()	cpu->pc += 2; cpu->cycles += 4;
 
 #define ZeroPage() cpu->read_memory( cpu->sys, operand )
 #define ZeroPageX() cpu->read_memory( cpu->sys, (byte)( operand + cpu->x ) )
@@ -184,7 +184,7 @@ void Cpu6502_CpuStep( Cpu6502 *cpu )
 		case CLV_B8: cpu->status.overflow = 0; _Implied(); break;
 
 		case PHP_08: PHP( cpu ); _Implied(); break;
-		case PHA_48: push( cpu, cpu->a ); _Implied(); break;
+		case PHA_48: push( cpu, cpu->a ); cpu->cycles = 1; _Implied(); break;
 		case PLP_28: PLP( cpu ); _Implied(); break;
 		case PLA_68: PLA( cpu ); _Implied(); break;
 
@@ -192,7 +192,7 @@ void Cpu6502_CpuStep( Cpu6502 *cpu )
 		case JMP_Indirect_6C: JMPind( cpu, operand ); break;
 		case JSR_20: JSR( cpu, operand ); break;
 		case RTS_60: RTS( cpu ); break;
-		case BRK_00: cpu->pc += 2; IRQ( cpu, 1 ); break; // The 6502 for some reason skips the byte following BRK
+		case BRK_00: cpu->pc += 2; cpu->cycles = 7; IRQ( cpu, 1 ); break; // The 6502 for some reason skips the byte following BRK
 		case RTI_40: RTI( cpu ); break;
 		case NOP_EA: _Implied(); break;
 
@@ -201,7 +201,7 @@ void Cpu6502_CpuStep( Cpu6502 *cpu )
 			operand = operand; // dummy line for breakpoint
 	}
 	
-	// Special cases need +1 or -1 correction if page crossing occurred
+	// Special cases need +1 cycle correction if page crossing occurred
 	cpu->cycles += cpu->cycle_correction;
 	
 	#ifdef DEBUG

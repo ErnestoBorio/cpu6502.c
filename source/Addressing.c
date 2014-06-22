@@ -36,7 +36,9 @@ static word Absolute_Indexed_adr( Cpu6502 *cpu, byte address_lowbyte, byte index
 {
 	cpu->cycles = 5;
 	word address = address_lowbyte + index;
-	//WIP: if( address_lowbyte + index > 0xFF ) then cycles++
+	if( address > 0xFF ) { // page crossed by indexing, adds 1 cycle
+		cpu->cycle_correction = +1;
+	}
 	address += get_operand2_high();
 	cpu->pc += 3;
 	return address;
@@ -47,7 +49,9 @@ static word Absolute_Indexed( Cpu6502 *cpu, byte address_lowbyte, byte index ) /
 {
 	cpu->cycles = 5;
 	word address = address_lowbyte + index;
-	//WIP: if( address_lowbyte + index > 0xFF ) then cycles++
+	if( address > 0xFF ) { // page crossed by indexing, adds 1 cycle
+		cpu->cycle_correction = +1;
+	}
 	address += get_operand2_high();
 	cpu->pc += 3;
 	return cpu->read_memory( cpu->sys, address );
