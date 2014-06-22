@@ -30,6 +30,9 @@ void Cpu6502_CpuStep( Cpu6502 *cpu )
 		int old_pc = cpu->pc; // make sure pc gets updated
 	#endif
 	
+	cpu->cycles = 0;
+	cpu->cycle_correction = 0;
+	
 	byte opcode = cpu->read_memory( cpu->sys, cpu->pc );
 
 	// The 6502 reads the next byte in advance to gain time, this could have side effects, so it's not trivial
@@ -195,11 +198,15 @@ void Cpu6502_CpuStep( Cpu6502 *cpu )
 
 		default:
 			printf( "Opcode $%02X not implemented\n", opcode );
-			operand = operand;
+			operand = operand; // dummy line for breakpoint
 	}
+	
+	// Special cases need +1 or -1 correction if page crossing occurred
+	cpu->cycles += cpu->cycle_correction;
 	
 	#ifdef DEBUG
 		assert( old_pc != cpu->pc ); // make sure pc gets updated
+		assert( cpu->cycles != 0 );
 	#endif
 }
 

@@ -43,8 +43,10 @@ typedef struct // Cpu6502
 	} status;
 
 	void *sys; // Pointer to the parent system, E.G.: C64, NES, VCS, BBC
-
 	byte *stack; // Pointer to the stack, at memory page 1 [$100..$1FF]
+	
+	byte cycles; // cycles ellapsed during one cpu step
+	byte cycle_correction; // +1 or -1 to adjust cycle count after one cpu step
 
 	// Pointers to external memory access functions provided by the parent system
 	byte (*read_memory)( void *parent_system, word address );
@@ -80,6 +82,7 @@ void Cpu6502_Initialize( Cpu6502 *cpu );
 void Cpu6502_Reset( Cpu6502 *cpu );
 
 // Executes the next instruction pointed to by the program counter
+// returns cycles ellapsed
 void Cpu6502_CpuStep( Cpu6502 *cpu );
 
 void Cpu6502_IRQ( Cpu6502 *cpu );
