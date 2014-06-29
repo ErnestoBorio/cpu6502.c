@@ -44,6 +44,7 @@ typedef struct // Cpu6502
 
 	void *sys; // Pointer to the parent system, E.G.: C64, NES, VCS, BBC
 	byte *stack; // Pointer to the stack, at memory page 1 [$100..$1FF]
+		// WIP: is *stack needed? is it gonna be used?
 	
 	// Temporal data used by CpuStep()
 	byte cycles; // Cycle count of the last executed instruction [1..7]

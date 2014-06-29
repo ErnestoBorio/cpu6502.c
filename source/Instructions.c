@@ -294,9 +294,9 @@ static void RTI( Cpu6502 *cpu )
 // -------------------------------------------------------------------------------
 void Cpu6502_IRQ( Cpu6502 *cpu )
 {
-	if( cpu->status.interrupt_disable )
-		return;
-	IRQ( cpu, 0 );
+	if( ! cpu->status.interrupt_disable )  {
+		IRQ( cpu, 0 );
+	}
 }
 
 // -------------------------------------------------------------------------------
