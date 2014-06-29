@@ -144,12 +144,17 @@ static void Branch( Cpu6502 *cpu, byte flag, byte condition, byte jump )
 {
 	if( flag == condition )
 	{
+		cpu->cycles++; // Taking the branch adds one cycle
 		cpu->pc += 2;  // The branch is relative to the next instruction's address
+		word old_pc_page = cpu->pc & 0xFF00;
 		if( jump & sign_bit ) { // relative jump is negative
 			cpu->pc += ( (word)jump - 0x100 ); // subtract jump's 2's complement
 		}
 		else {
 			cpu->pc += jump;
+		}
+		if( old_pc_page != ( cpu->pc & 0xFF00 ) ) {
+			cpu->cycles++; // Branching over a page boundary adds one more cycle
 		}
 	}
 	else {
@@ -168,7 +173,7 @@ static void JMPind( Cpu6502 *cpu, byte ptr_lowbyte )
 {
 	word ptr_highbyte = cpu->read_memory( cpu->sys, cpu->pc + 2 ) <<8;	
 	cpu->pc = cpu->read_memory( cpu->sys, ptr_highbyte | ptr_lowbyte );
-	ptr_lowbyte++;
+	ptr_lowbyte++; // Fetch next pointer's byte, this wraps around the page if the pointer starts at $XXFF
 	cpu->pc |= cpu->read_memory( cpu->sys, ptr_highbyte | ptr_lowbyte ) <<8;
 }
 // -------------------------------------------------------------------------------
@@ -266,7 +271,8 @@ static void IRQ( Cpu6502 *cpu, byte brk )
 	}
 	#endif
 
-	// WIP: If it's an IRQ, check for the interrupt disable flag
+	cpu->cycles = 7;
+	
 	push( cpu, cpu->pc >>8 ); // pc's highbyte
 	push( cpu, cpu->pc & 0xFF ); // pc's lowbyte
 	push( cpu, pack_status( cpu, brk ) );
@@ -299,7 +305,9 @@ void Cpu6502_NMI( Cpu6502 *cpu )
 	#ifdef _Cpu6502_Disassembler
 		printf( "NMI Triggered\n" );
 	#endif
-	// WIP: If it's an IRQ, check for the interrupt disable flag
+	
+	cpu->cycles = 7;
+	
 	push( cpu, cpu->pc >>8 ); // pc's highbyte
 	push( cpu, cpu->pc & 0xFF ); // pc's lowbyte
 	push( cpu, pack_status( cpu, 0 ) );	

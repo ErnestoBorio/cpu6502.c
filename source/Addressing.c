@@ -33,7 +33,9 @@ static byte Absolute( Cpu6502 *cpu, byte address_lowbyte ) // LDA $HHHH
 static word Absolute_Indexed_adr( Cpu6502 *cpu, byte address_lowbyte, byte index ) // STA $HHHH,X
 {
 	word address = address_lowbyte + index;
-	//WIP: if( address_lowbyte + index > 0xFF ) then cycles++
+	if( address > 0xFF ) {
+		cpu->addressing_page_cross = 1;
+	}
 	address += get_operand2_high();
 	cpu->pc += 3;
 	return address;
@@ -43,7 +45,9 @@ static word Absolute_Indexed_adr( Cpu6502 *cpu, byte address_lowbyte, byte index
 static word Absolute_Indexed( Cpu6502 *cpu, byte address_lowbyte, byte index ) // LDA $HHHH,Y
 {
 	word address = address_lowbyte + index;
-	//WIP: if( address_lowbyte + index > 0xFF ) then cycles++
+	if( address > 0xFF ) {
+		cpu->addressing_page_cross = 1;
+	}
 	address += get_operand2_high();
 	cpu->pc += 3;
 	return cpu->read_memory( cpu->sys, address );
@@ -71,8 +75,11 @@ static byte Indexed_Indirect_X( Cpu6502 *cpu, byte base ) // LDA ($HH,X)
 static byte Indirect_Indexed_Y_adr( Cpu6502 *cpu, byte base ) // STA ($HH),Y
 {
 	cpu->pc += 2;
-	byte ptr_low = cpu->read_memory( cpu->sys, base ) + cpu->y;
-	word address = ptr_low | ( cpu->read_memory( cpu->sys, (byte)( base + 1 ) ) <<8 );
+	word address = cpu->read_memory( cpu->sys, base ) + cpu->y;
+	if( address > 0xFF ) {
+		cpu->addressing_page_cross = 1;
+	}
+	address += ( cpu->read_memory( cpu->sys, (byte)( base + 1 ) ) <<8 );
 	return address;
 }
 
@@ -80,8 +87,11 @@ static byte Indirect_Indexed_Y_adr( Cpu6502 *cpu, byte base ) // STA ($HH),Y
 static byte Indirect_Indexed_Y( Cpu6502 *cpu, byte base ) // LDA ($HH),Y
 {
 	cpu->pc += 2;
-	byte ptr_low = cpu->read_memory( cpu->sys, base ) + cpu->y;
-	word address = ptr_low | ( cpu->read_memory( cpu->sys, (byte)( base + 1 ) ) <<8 );
+	word address = cpu->read_memory( cpu->sys, base ) + cpu->y;
+	if( address > 0xFF ) {
+		cpu->addressing_page_cross = 1;
+	}
+	address += ( cpu->read_memory( cpu->sys, (byte)( base + 1 ) ) <<8 );
 	return cpu->read_memory( cpu->sys, address );
 }
 
