@@ -9,27 +9,14 @@ void Cpu6502_Free( Cpu6502 *cpu )
 }
 
 // -------------------------------------------------------------------------------
-Cpu6502* Cpu6502_Create(
-	void *parent_system,
-	byte *stack_pointer
-#ifdef _Cpu6502_Disassembler								
-	, byte (*read_memory_disasm)( void *parent_system, word address )
-#endif
-	)
+Cpu6502* Cpu6502_Create( void *parent_system )
 {
-	Cpu6502 *cpu = (Cpu6502*) malloc( sizeof( Cpu6502 ) );
-	if( cpu == NULL ) {
+	Cpu6502 *this = (Cpu6502*) malloc( sizeof( Cpu6502 ) );
+	if( this == NULL ) {
 		return NULL;
 	}
-
-	cpu->sys = parent_system;
-	cpu->stack = stack_pointer;
-
-#ifdef _Cpu6502_Disassembler
-	cpu->read_memory_disasm = read_memory_disasm;
-#endif
-
-	return cpu;
+	this->sys = parent_system;
+	return this;
 }
 
 // -------------------------------------------------------------------------------

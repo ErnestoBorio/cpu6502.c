@@ -44,8 +44,6 @@ typedef struct // Cpu6502
 	} status;
 
 	void *sys; // Pointer to the parent system, E.G.: C64, NES, VCS, BBC
-	byte *stack; // Pointer to the stack, at memory page 1 [$100..$1FF]
-		// WIP: is *stack needed? is it gonna be used?
 	
 	// Temporal data used by CpuStep()
 	byte cycles; // Cycle count of the last executed instruction [1..7]
@@ -58,21 +56,16 @@ typedef struct // Cpu6502
 #ifdef _Cpu6502_Disassembler
 		// this is used by the disassembler, should not produce side effects:
 	byte (*read_memory_disasm)( void *parent_system, word address );
-#endif
 
-	#ifdef _Cpu6502_Disassembler
-		unsigned long int instruction_count;
-	#endif
+	byte *stack; // Pointer to the stack, at memory page 1 [$100..$1FF]
+	unsigned long int instruction_count;
+#endif
 
 } Cpu6502;
 
 // -------------------------------------------------------------------------------
 // Factory constructor
-Cpu6502* Cpu6502_Create( void *parent_system, byte *stack_pointer
-#ifdef _Cpu6502_Disassembler
-	, byte (*read_memory_disasm)( void *parent_system, word address )
-#endif
-	);
+Cpu6502* Cpu6502_Create( void *parent_system );
 
 // Destructor
 void Cpu6502_Free( Cpu6502 *cpu );
