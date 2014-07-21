@@ -34,9 +34,9 @@ static void DeInXY( Cpu6502 *cpu, byte *registre, int delta ) // INX, DEX, INY, 
 // -------------------------------------------------------------------------------
 static void IncDec( Cpu6502 *cpu, word address, int delta )
 {
-	byte value = cpu->read_memory( cpu->sys, address );
+	byte value = cpu->read_memory[address]( cpu->sys, address );
 	value += delta;
-	cpu->write_memory( cpu->sys, address, value );
+	cpu->write_memory[address]( cpu->sys, address, value );
 	cpu->status.zero = ( value == 0 );
 	cpu->status.negative = ( value & sign_bit ) != 0;
 }
@@ -64,44 +64,44 @@ static void SBC( Cpu6502 *cpu, byte value )
 // -------------------------------------------------------------------------------
 static void ASL( Cpu6502 *cpu, word address )
 {
-	byte value = cpu->read_memory( cpu->sys, address );
+	byte value = cpu->read_memory[address]( cpu->sys, address );
 	cpu->status.carry = value & bit7;
 	value = value <<1;
 	cpu->status.zero = ( value == 0 );
 	cpu->status.negative = ( value & sign_bit ) != 0;
-	cpu->write_memory( cpu->sys, address, value );
+	cpu->write_memory[address]( cpu->sys, address, value );
 }
 // -------------------------------------------------------------------------------
 static void LSR( Cpu6502 *cpu, word address )
 {
-	byte value = cpu->read_memory( cpu->sys, address );
+	byte value = cpu->read_memory[address]( cpu->sys, address );
 	cpu->status.carry = value & bit0;
 	value = value >>1;
 	cpu->status.zero = ( value == 0 );
 	cpu->status.negative = ( value & sign_bit ) != 0;
-	cpu->write_memory( cpu->sys, address, value );
+	cpu->write_memory[address]( cpu->sys, address, value );
 }
 // -------------------------------------------------------------------------------
 static void ROL( Cpu6502 *cpu, word address )
 {
-	byte value = cpu->read_memory( cpu->sys, address );
+	byte value = cpu->read_memory[address]( cpu->sys, address );
 	byte old_carry = cpu->status.carry;
 	cpu->status.carry = value & bit7;
 	value = ( value <<1 ) | old_carry;
 	cpu->status.zero = ( value == 0 );
 	cpu->status.negative = ( value & sign_bit ) != 0;
-	cpu->write_memory( cpu->sys, address, value );
+	cpu->write_memory[address]( cpu->sys, address, value );
 }
 // -------------------------------------------------------------------------------
 static void ROR( Cpu6502 *cpu, word address )
 {
-	byte value = cpu->read_memory( cpu->sys, address );
+	byte value = cpu->read_memory[address]( cpu->sys, address );
 	byte old_carry = cpu->status.carry;
 	cpu->status.carry = value & bit7;
 	value = ( value >>1 ) | ( old_carry <<7 );
 	cpu->status.zero = ( value == 0 );
 	cpu->status.negative = ( value & sign_bit ) != 0;
-	cpu->write_memory( cpu->sys, address, value );
+	cpu->write_memory[address]( cpu->sys, address, value );
 }
 // -------------------------------------------------------------------------------
 static void CPr( Cpu6502 *cpu, byte registre, byte value ) // CMP, CPX, CPY
@@ -165,16 +165,17 @@ static void Branch( Cpu6502 *cpu, byte flag, byte condition, byte jump )
 static void JMPabs( Cpu6502 *cpu, byte address_lowbyte )
 {
 	word address = address_lowbyte;
-	address |= cpu->read_memory( cpu->sys, cpu->pc + 2 ) <<8; // high byte
+	address |= cpu->read_memory[cpu->pc+2]( cpu->sys, cpu->pc+2 ) <<8; // high byte
 	cpu->pc = address;
 }
 // -------------------------------------------------------------------------------
 static void JMPind( Cpu6502 *cpu, byte ptr_lowbyte )
 {
-	word ptr_highbyte = cpu->read_memory( cpu->sys, cpu->pc + 2 ) <<8;	
-	cpu->pc = cpu->read_memory( cpu->sys, ptr_highbyte | ptr_lowbyte );
-	ptr_lowbyte++; // Fetch next pointer's byte, this wraps around the page if the pointer starts at $XXFF
-	cpu->pc |= cpu->read_memory( cpu->sys, ptr_highbyte | ptr_lowbyte ) <<8;
+	word ptr_highbyte = cpu->read_memory[cpu->pc+2]( cpu->sys, cpu->pc+2 ) <<8;	
+	cpu->pc = cpu->read_memory[ptr_highbyte|ptr_lowbyte]( cpu->sys, ptr_highbyte | ptr_lowbyte );
+	ptr_lowbyte++;
+	cpu->pc |= cpu->read_memory[ptr_highbyte|ptr_lowbyte]( cpu->sys, ptr_highbyte | ptr_lowbyte ) <<8;
+	// Fetch next pointer's byte, this wraps around the page if the pointer starts at $XXFF
 }
 // -------------------------------------------------------------------------------
 static void Trr( Cpu6502 *cpu, byte reg_from, byte *reg_to ) // TAX, TAY, TXA, TYA
@@ -186,7 +187,7 @@ static void Trr( Cpu6502 *cpu, byte reg_from, byte *reg_to ) // TAX, TAY, TXA, T
 // -------------------------------------------------------------------------------
 static inline void push( Cpu6502 *cpu, byte value )
 {
-	cpu->write_memory( cpu->sys, 0x100 + cpu->sp, value ); // Stack sits on $100-$1FF
+	cpu->write_memory[0x100+cpu->sp]( cpu->sys, 0x100 + cpu->sp, value ); // Stack sits on $100-$1FF
 	cpu->sp--;
 	assert( ( cpu->sp >= 0 ) && ( cpu->sp <= 0xFF ) );
 	// WIP make sure that type byte is exactly 8 bits wide.
@@ -196,7 +197,7 @@ static inline byte pull( Cpu6502 *cpu )
 {
 	cpu->sp++;
 	assert( ( cpu->sp >= 0 ) && ( cpu->sp <= 0xFF ) );
-	return cpu->read_memory( cpu->sys, 0x100 + cpu->sp ); // Stack sits on $100-$1FF
+	return cpu->read_memory[0x100+cpu->sp]( cpu->sys, 0x100 + cpu->sp ); // Stack sits on $100-$1FF
 }
 // ---------------------------------------
 static void PLA( Cpu6502 *cpu )
@@ -249,7 +250,7 @@ static void JSR( Cpu6502 *cpu, byte address_lowbyte )
 	push( cpu, cpu->pc & 0xFF ); // pc's lowbyte
 
 	word address = address_lowbyte;
-	address |= cpu->read_memory( cpu->sys, cpu->pc ) <<8; // pc here is at JSR's 3rd byte
+	address |= cpu->read_memory[cpu->pc]( cpu->sys, cpu->pc ) <<8; // pc here is at JSR's 3rd byte
 	cpu->pc = address;
 }
 // -------------------------------------------------------------------------------
@@ -280,8 +281,8 @@ static void IRQ( Cpu6502 *cpu, byte brk )
 	// "NMOS 6502 do not clear the decimal mode flag when an interrupt occurs". Other 6502s do?	
 	cpu->status.decimal_mode = 0; // Marat Fayzullin and others do this
 	cpu->status.interrupt_disable = 1;
-	cpu->pc = cpu->read_memory( cpu->sys, 0xFFFE ); // Jump to IRQ/BRK vector
-	cpu->pc |= cpu->read_memory( cpu->sys, 0xFFFF ) <<8;
+	cpu->pc = cpu->read_memory[0xFFFE]( cpu->sys, 0xFFFE ); // Jump to IRQ/BRK vector
+	cpu->pc |= cpu->read_memory[0xFFFF]( cpu->sys, 0xFFFF ) <<8;
 }
 // -------------------------------------------------------------------------------
 static void RTI( Cpu6502 *cpu )
@@ -292,29 +293,31 @@ static void RTI( Cpu6502 *cpu )
 }
 
 // -------------------------------------------------------------------------------
-void Cpu6502_IRQ( Cpu6502 *cpu )
+int Cpu6502_IRQ( Cpu6502 *cpu )
 {
 	if( ! cpu->status.interrupt_disable )  {
 		IRQ( cpu, 0 );
 	}
+	return cpu->cycles; // Always 7
 }
 
 // -------------------------------------------------------------------------------
-void Cpu6502_NMI( Cpu6502 *cpu )
+int Cpu6502_NMI( Cpu6502 *cpu )
 {
 	#ifdef _Cpu6502_Disassembler
 		printf( "NMI Triggered\n" );
 	#endif
-	
-	cpu->cycles = 7;
 	
 	push( cpu, cpu->pc >>8 ); // pc's highbyte
 	push( cpu, cpu->pc & 0xFF ); // pc's lowbyte
 	push( cpu, pack_status( cpu, 0 ) );	
 	cpu->status.decimal_mode = 0; // Marat Fayzullin and others do this
 	cpu->status.interrupt_disable = 1; // WIP: Marat Fayzullin doesn't do this
-	cpu->pc = cpu->read_memory( cpu->sys, 0xFFFA ); // Jump to NMI vector
-	cpu->pc |= cpu->read_memory( cpu->sys, 0xFFFB ) <<8;
+	cpu->pc = cpu->read_memory[0xFFFA]( cpu->sys, 0xFFFA ); // Jump to NMI vector
+	cpu->pc |= cpu->read_memory[0xFFFB]( cpu->sys, 0xFFFB ) <<8;
+	
+	cpu->cycles = 7;
+	return cpu->cycles;
 }
 // -------------------------------------------------------------------------------
 

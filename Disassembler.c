@@ -94,9 +94,9 @@ void Cpu6502_Disassemble( Cpu6502 *cpu, byte hide_instruction )
 // ----------------------------------------------------------------------------------------------------------------
 static inline char* Cpu6502_Get_addressing( Cpu6502 *cpu, char *string )
 {
-	byte opcode = cpu->read_memory( cpu->sys, cpu->pc );
-	byte operand = cpu->read_memory( cpu->sys, cpu->pc+1 );
-	byte operand2 = cpu->read_memory( cpu->sys, cpu->pc+2 );
+	byte opcode = cpu->read_memory[cpu->pc]( cpu->sys, cpu->pc );
+	byte operand = cpu->read_memory[cpu->pc+1]( cpu->sys, cpu->pc+1 );
+	byte operand2 = cpu->read_memory[cpu->pc+2]( cpu->sys, cpu->pc+2 );
 	word address = ((word)operand2) <<8 | operand;
 
 	switch( opcode )

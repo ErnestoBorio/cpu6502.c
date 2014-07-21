@@ -2,7 +2,8 @@
 #ifndef _Cpu6502_h_
 	#define _Cpu6502_h_
 
-#define _Cpu6502_Disassembler // compiles the disassembler
+// This file should be present in the project that uses Cpu6502
+#include "Cpu6502_settings.h"
 
 #ifndef false
 	#define false 0
@@ -50,9 +51,9 @@ typedef struct // Cpu6502
 	byte cycles; // Cycle count of the last executed instruction [1..7]
 	byte addressing_page_cross; // Flag when indexed modes cross a page boundary
 
-	// Pointers to external memory access functions provided by the parent system
-	byte (*read_memory)( void *parent_system, word address );
-	void (*write_memory)( void *parent_system, word address, byte value );
+	// Tables of pointers to external memory access functions provided by the parent system
+	byte (*read_memory[0x10000])( void *parent_system, word address );
+	void (*write_memory[0x10000])( void *parent_system, word address, byte value );
 
 #ifdef _Cpu6502_Disassembler
 		// this is used by the disassembler, should not produce side effects:
@@ -67,15 +68,11 @@ typedef struct // Cpu6502
 
 // -------------------------------------------------------------------------------
 // Factory constructor
-Cpu6502* Cpu6502_Create(
-	void *parent_system,
-	byte *stack_pointer,
-	byte (*read_memory)( void *parent_system, word address ),
-	void (*write_memory)( void *parent_system, word address, byte value )
-#ifdef _Cpu6502_Disassembler								
+Cpu6502* Cpu6502_Create( void *parent_system, byte *stack_pointer
+#ifdef _Cpu6502_Disassembler
 	, byte (*read_memory_disasm)( void *parent_system, word address )
 #endif
-);
+	);
 
 // Destructor
 void Cpu6502_Free( Cpu6502 *cpu );
@@ -84,10 +81,10 @@ void Cpu6502_Initialize( Cpu6502 *cpu );
 void Cpu6502_Reset( Cpu6502 *cpu );
 
 // Executes the next instruction pointed to by the program counter
-void Cpu6502_CpuStep( Cpu6502 *cpu );
+int Cpu6502_CpuStep( Cpu6502 *cpu );
 
-void Cpu6502_IRQ( Cpu6502 *cpu );
-void Cpu6502_NMI( Cpu6502 *cpu );
+int Cpu6502_IRQ( Cpu6502 *cpu );
+int Cpu6502_NMI( Cpu6502 *cpu );
 
 #ifdef _Cpu6502_Disassembler
 	void Cpu6502_Disassemble( Cpu6502 *cpu, byte hide_instruction );

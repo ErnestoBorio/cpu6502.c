@@ -18,26 +18,26 @@
 #define _ZeroPageY()	cpu->pc += 2;
 #define _PageCross() if( cpu->addressing_page_cross ) { cpu->cycles++; }
 
-#define ZeroPage() cpu->read_memory( cpu->sys, operand )
-#define ZeroPageX() cpu->read_memory( cpu->sys, (byte)( operand + cpu->x ) )
-#define ZeroPageY() cpu->read_memory( cpu->sys, (byte)( operand + cpu->y ) )
+#define ZeroPage() cpu->read_memory[operand]( cpu->sys, operand )
+#define ZeroPageX() cpu->read_memory[(byte)( operand+cpu->x )]( cpu->sys, (byte)( operand+cpu->x ) )
+#define ZeroPageY() cpu->read_memory[(byte)( operand+cpu->y )]( cpu->sys, (byte)( operand+cpu->y ) )
 #define ZeroPageX_adr() (byte)( operand + cpu->x )
 #define ZeroPageY_adr() (byte)( operand + cpu->y )
-#define STr( address, register ) cpu->write_memory( cpu->sys, address, register );
+#define STr( address, register ) temp_address = address; cpu->write_memory[temp_address]( cpu->sys, temp_address, register );
 
 static unsigned char opcode_cycles[0x100];
 
-//Agregar los ciclos extra por page crossing, de branch, JMP, addressing? y por branch taken.
-
-void Cpu6502_CpuStep( Cpu6502 *cpu )
+int Cpu6502_CpuStep( Cpu6502 *cpu )
 {
 	cpu->addressing_page_cross = 0;
 	
-	byte opcode = cpu->read_memory( cpu->sys, cpu->pc );	
+	byte opcode = cpu->read_memory[cpu->pc]( cpu->sys, cpu->pc );	
 	cpu->cycles = opcode_cycles[opcode]; // this can be incremented by special cases like branch page crossing
 
 	// The 6502 reads the next byte in advance to gain time, this could have side effects, so it's not trivial
-	byte operand = cpu->read_memory( cpu->sys, cpu->pc + 1 );
+	byte operand = cpu->read_memory[cpu->pc+1]( cpu->sys, cpu->pc+1 );
+	
+	word temp_address; // Needed by cpu->write_memory[] pointer table dereferencing
 
 	switch( opcode )
 	{
@@ -203,6 +203,7 @@ void Cpu6502_CpuStep( Cpu6502 *cpu )
 			printf( "Opcode $%02X not implemented\n", opcode );
 			assert(0);
 	}
+	return cpu->cycles;
 }
 
 /* Has the cycle count for each opcode, including the undocumented. Taken from FCEUX source code.
