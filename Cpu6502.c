@@ -30,8 +30,7 @@ void Cpu6502_Initialize( Cpu6502 *cpu )
 	cpu->status.decimal_mode = 0;
 	cpu->status.overflow = 0;
 	cpu->status.negative =	0;
-	cpu->status.interrupt_disable = 1;	
-	Cpu6502_Reset( cpu );
+	cpu->status.interrupt_disable = 1;
 }
 
 // -------------------------------------------------------------------------------
