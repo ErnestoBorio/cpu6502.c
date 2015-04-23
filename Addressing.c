@@ -7,6 +7,10 @@
  This file is to be included in CpuStep.c
  
  Instructions as seen in http://www.obelisk.demon.co.uk/6502/
+ 
+ *_adr functions return an address for writing operations like STA
+ other funcionts return the value in the specified memory address for reading operations like LDA
+ 
  */
 
 #define get_operand2_high() ( cpu->read_memory[cpu->pc + 2]( cpu->sys, cpu->pc + 2 ) <<8 )

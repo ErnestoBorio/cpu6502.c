@@ -264,12 +264,12 @@ static void RTS( Cpu6502 *cpu )
 static void IRQ( Cpu6502 *cpu, byte brk )
 {
 	#ifdef _Cpu6502_Disassembler
-	if( brk ) {
-		printf( "Software IRQ triggered (BRK)\n" );
-	}
-	else {
-		printf( "Hardware IRQ triggered\n" );
-	}
+   	if( brk ) {
+   		printf( "Software IRQ triggered (BRK)\n" );
+   	}
+   	else {
+   		printf( "Hardware IRQ triggered\n" );
+   	}
 	#endif
 
 	cpu->cycles = 7;
