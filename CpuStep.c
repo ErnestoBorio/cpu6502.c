@@ -11,11 +11,11 @@
 #include "Instructions.c"
 
 // This addressing modes don't have a function, so this just updates the PC
-#define _Implied()	cpu->pc += 1;
-#define _Immediate()	cpu->pc += 2;
-#define _ZeroPage()	cpu->pc += 2;
-#define _ZeroPageX()	cpu->pc += 2;
-#define _ZeroPageY()	cpu->pc += 2;
+#define _Implied()   cpu->pc += 1;
+#define _Immediate() cpu->pc += 2;
+#define _ZeroPage()  cpu->pc += 2;
+#define _ZeroPageX() cpu->pc += 2;
+#define _ZeroPageY() cpu->pc += 2;
 #define _PageCross() if( cpu->addressing_page_cross ) { cpu->cycles++; }
 
 #define ZeroPage() cpu->read_memory[operand]( cpu->sys, operand )
@@ -117,6 +117,10 @@ int Cpu6502_CpuStep( Cpu6502 *cpu )
 		case CMP_Absolute_Y_D9: CPr( cpu, cpu->a, Absolute_Indexed( cpu, operand, cpu->y ) ); _PageCross(); break;
 		case CMP_Indexed_Indirect_X_C1: CPr( cpu, cpu->a, Indexed_Indirect_X( cpu, operand ) ); break;
 			// ASL LSR ROR ROL
+      case ASL_Accumulator_0A: ASLa( cpu ); break;
+      case LSR_Accumulator_4A: LSRa( cpu ); break;
+      case ROL_Accumulator_2A: ROLa( cpu ); break;
+      case ROR_Accumulator_6A: RORa( cpu ); break;
 		case ASL_Zero_page_06: ASL( cpu, operand ); _ZeroPage(); break;
 		case LSR_Zero_page_46: LSR( cpu, operand ); _ZeroPage(); break;
 		case ROL_Zero_page_26: ROL( cpu, operand ); _ZeroPage(); break;

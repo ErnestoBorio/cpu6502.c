@@ -71,37 +71,71 @@ static void ASL( Cpu6502 *cpu, word address )
 	cpu->status.negative = ( value & sign_bit ) != 0;
 	cpu->write_memory[address]( cpu->sys, address, value );
 }
+static void ASLa( Cpu6502 *cpu )
+{
+   cpu->status.carry = cpu->a & bit7;
+   cpu->a = cpu->a <<1;
+   cpu->status.zero = ( cpu->a == 0 );
+   cpu->status.negative = ( cpu->a & sign_bit ) != 0;
+   cpu->pc++;
+} 
 // -------------------------------------------------------------------------------
 static void LSR( Cpu6502 *cpu, word address )
 {
-	byte value = cpu->read_memory[address]( cpu->sys, address );
-	cpu->status.carry = value & bit0;
-	value = value >>1;
-	cpu->status.zero = ( value == 0 );
-	cpu->status.negative = ( value & sign_bit ) != 0;
-	cpu->write_memory[address]( cpu->sys, address, value );
+   byte value = cpu->read_memory[address]( cpu->sys, address );
+   cpu->status.carry = value & bit0;
+   value = value >>1;
+   cpu->status.zero = ( value == 0 );
+   cpu->status.negative = ( value & sign_bit ) != 0;
+   cpu->write_memory[address]( cpu->sys, address, value );
+}
+static void LSRa( Cpu6502 *cpu )
+{
+   cpu->status.carry = cpu->a & bit0;
+   cpu->a = cpu->a >>1;
+   cpu->status.zero = ( cpu->a == 0 );
+   cpu->status.negative = ( cpu->a & sign_bit ) != 0;
+   cpu->pc++;
 }
 // -------------------------------------------------------------------------------
 static void ROL( Cpu6502 *cpu, word address )
 {
-	byte value = cpu->read_memory[address]( cpu->sys, address );
-	byte old_carry = cpu->status.carry;
-	cpu->status.carry = value & bit7;
-	value = ( value <<1 ) | old_carry;
-	cpu->status.zero = ( value == 0 );
-	cpu->status.negative = ( value & sign_bit ) != 0;
-	cpu->write_memory[address]( cpu->sys, address, value );
+   byte value = cpu->read_memory[address]( cpu->sys, address );
+   byte old_carry = cpu->status.carry;
+   cpu->status.carry = value & bit7;
+   value = ( value <<1 ) | old_carry;
+   cpu->status.zero = ( value == 0 );
+   cpu->status.negative = ( value & sign_bit ) != 0;
+   cpu->write_memory[address]( cpu->sys, address, value );
+}
+static void ROLa( Cpu6502 *cpu )
+{
+   byte old_carry = cpu->status.carry;
+   cpu->status.carry = cpu->a & bit7;
+   cpu->a = ( cpu->a <<1 ) | old_carry;
+   cpu->status.zero = ( cpu->a == 0 );
+   cpu->status.negative = ( cpu->a & sign_bit ) != 0;
+   cpu->pc++;
 }
 // -------------------------------------------------------------------------------
 static void ROR( Cpu6502 *cpu, word address )
 {
-	byte value = cpu->read_memory[address]( cpu->sys, address );
-	byte old_carry = cpu->status.carry;
-	cpu->status.carry = value & bit7;
-	value = ( value >>1 ) | ( old_carry <<7 );
-	cpu->status.zero = ( value == 0 );
-	cpu->status.negative = ( value & sign_bit ) != 0;
-	cpu->write_memory[address]( cpu->sys, address, value );
+   byte value = cpu->read_memory[address]( cpu->sys, address );
+   byte old_carry = cpu->status.carry;
+   cpu->status.carry = value & bit7;
+   value = ( value >>1 ) | ( old_carry <<7 );
+   cpu->status.zero = ( value == 0 );
+   cpu->status.negative = ( value & sign_bit ) != 0;
+   cpu->write_memory[address]( cpu->sys, address, value );
+}
+static void RORa( Cpu6502 *cpu )
+{
+   byte old_carry = cpu->status.carry;
+   cpu->status.carry = cpu->a & bit7;
+   cpu->a = ( cpu->a >>1 ) | ( old_carry <<7 );
+   cpu->status.zero = ( cpu->a == 0 );
+   cpu->status.negative = ( cpu->a & sign_bit ) != 0;
+   cpu->pc++;
 }
 // -------------------------------------------------------------------------------
 static void CPr( Cpu6502 *cpu, byte registre, byte value ) // CMP, CPX, CPY
@@ -320,22 +354,3 @@ int Cpu6502_NMI( Cpu6502 *cpu )
 	return cpu->cycles;
 }
 // -------------------------------------------------------------------------------
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
