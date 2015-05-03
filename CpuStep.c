@@ -85,6 +85,8 @@ int Cpu6502_CpuStep( Cpu6502 *cpu )
 		case DEC_Zero_page_X_D6: IncDec( cpu, ZeroPageX_adr(), -1 ); _ZeroPageX(); break;
 		case INC_Absolute_EE: IncDec( cpu, Absolute_adr( cpu, operand ), +1 ); break;
 		case DEC_Absolute_CE: IncDec( cpu, Absolute_adr( cpu, operand ), -1 ); break;
+      case INC_Absolute_X_FE: IncDec( cpu, Absolute_adr( cpu, operand ), +1 ); break;
+      case DEC_Absolute_X_DE: IncDec( cpu, Absolute_adr( cpu, operand ), -1 ); break;
 			// ADC SBC
 		case ADC_Immediate_69: ADC( cpu, operand ); _Immediate(); break;
 		case SBC_Immediate_E9: SBC( cpu, operand ); _Immediate(); break;
@@ -116,6 +118,7 @@ int Cpu6502_CpuStep( Cpu6502 *cpu )
 		case CMP_Absolute_X_DD: CPr( cpu, cpu->a, Absolute_Indexed( cpu, operand, cpu->x ) ); _PageCross(); break;
 		case CMP_Absolute_Y_D9: CPr( cpu, cpu->a, Absolute_Indexed( cpu, operand, cpu->y ) ); _PageCross(); break;
 		case CMP_Indexed_Indirect_X_C1: CPr( cpu, cpu->a, Indexed_Indirect_X( cpu, operand ) ); break;
+      case CMP_Indirect_Indexed_Y_D1: CPr( cpu, cpu->a, Indirect_Indexed_Y( cpu, operand ) ); break;
 			// ASL LSR ROR ROL
       case ASL_Accumulator_0A: ASLa( cpu ); break;
       case LSR_Accumulator_4A: LSRa( cpu ); break;
@@ -137,13 +140,13 @@ int Cpu6502_CpuStep( Cpu6502 *cpu )
 		case LSR_Absolute_X_5E: LSR( cpu, Absolute_Indexed_adr( cpu, operand, cpu->x ) ); break;
 		case ROL_Absolute_X_3E: ROL( cpu, Absolute_Indexed_adr( cpu, operand, cpu->x ) ); break;
 		case ROR_Absolute_X_7E: ROR( cpu, Absolute_Indexed_adr( cpu, operand, cpu->x ) ); break;
-			// TAX TAY TXA TYA
+			// TAX TAY TXA TYA TSX TXS
 		case TAX_AA: Trr( cpu, cpu->a, &cpu->x ); _Implied(); break;
 		case TAY_A8: Trr( cpu, cpu->a, &cpu->y ); _Implied(); break;
 		case TXA_8A: Trr( cpu, cpu->x, &cpu->a ); _Implied(); break;
 		case TYA_98: Trr( cpu, cpu->y, &cpu->a ); _Implied(); break;
 		case TSX_BA: Trr( cpu, cpu->sp, &cpu->x ); _Implied(); break;
-		case TXS_9A: Trr( cpu, cpu->x, &cpu->sp ); _Implied(); break;
+		case TXS_9A: cpu->sp = cpu->x; _Implied(); break; // TXS doesn't affect any status flag
 			// AND EOR ORA BIT
 		case AND_Immediate_29: AND( cpu, operand ); _Immediate(); break;
 		case EOR_Immediate_49: EOR( cpu, operand ); _Immediate(); break;
@@ -203,8 +206,12 @@ int Cpu6502_CpuStep( Cpu6502 *cpu )
 		case BRK_00: cpu->pc += 2; IRQ( cpu, 1 ); break;
 			// The 6502 skips the byte following BRK, so it's actually considered a 2 byte instruction
 
+      case 0x04: case 0x0C: case 0x14: case 0x1A: case 0x1C: case 0x34: case 0x3A: case 0x3C: case 0x44:
+      case 0x54: case 0x5A: case 0x5C: case 0x64: case 0x74: case 0x7A: case 0x7C: case 0x80: case 0xD4:
+      case 0xDA: case 0xDC: case 0xF4: case 0xFA: case 0xFC:
+         printf( "Hit an unofficial NOP. " );
 		default:
-			printf( "Opcode $%02X not implemented\n", opcode );
+			printf( "Opcode $%02X not implemented.\nExecuted %lu instructions.\n", opcode, cpu->instruction_count );
 			assert(0);
 	}
 	return cpu->cycles;
@@ -232,7 +239,3 @@ static unsigned char opcode_cycles[0x100] = {
 /* $E0 */ 2,6,3,8,3,3,5,5,2,2,2,2,4,4,6,6,
 /* $F0 */ 2,5,2,8,4,4,6,6,2,4,2,7,4,4,7,7
 };
-
-
-
-
