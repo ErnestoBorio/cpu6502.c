@@ -245,9 +245,9 @@ int Cpu6502_CpuStep( Cpu6502 *cpu )
          {
             switch( opcode_addressing[opcode] )
             {
-               case IMP: case IMM: case ACU: cpu->pc += 1; break;
+               case IMP: case ACU: cpu->pc += 1; break;
                case IND: case ABS: case ABX: case ABY: cpu->pc += 3; break;               
-               default: cpu->pc += 2; // Zero page based addressing modes and branches
+               default: cpu->pc += 2; // Zero page based addressing modes, immediates and branches
             }
             break;
          }
