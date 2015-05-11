@@ -1,4 +1,8 @@
 
+TO DO:
+
+Ponerle los addressing modes a los NOP ilegales para poder skipear los bytes de la instrucción correctamente. Los ciclos ya están en la table que chorée de FCEUX.
+
 >> 2015-05-10 Domingo
 
 Hace unos días finalmente empecé a correr nestest. La primera serie de corridas y posteriormente comparando el log de nestest con el de ModNES me permitió
