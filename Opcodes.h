@@ -5,9 +5,8 @@
 // opcode information taken from:
 // http://www.obelisk.demon.co.uk/6502/reference.html
 
-typedef enum // Cpu6502_opcodes
-{
-
+// Cpu6502_opcodes
+enum {
 // Load/Store Operations
 
    // LDA - Load Accumulator
@@ -208,7 +207,6 @@ typedef enum // Cpu6502_opcodes
       RTS_60 = 0x60,
       
 // Branches
-
    
       BCC_Relative_90 = 0x90, // BCC - Branch if Carry Clear
       BCS_Relative_B0 = 0xB0, // BCS - Branch if Carry Set
@@ -234,7 +232,6 @@ typedef enum // Cpu6502_opcodes
       BRK_00 = 0x00, // BRK - Force Interrupt
       NOP_EA = 0xEA, // NOP - No Operation
       RTI_40 = 0x40  // RTI - Return from Interrupt
-    
-} Cpu6502_opcodes;
+};
 
 #endif // #ifndef _opcodes_h_

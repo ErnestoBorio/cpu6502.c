@@ -25,6 +25,11 @@ static void LDr( Cpu6502 *cpu, byte *registre, byte value ) // LDA, LDX, LDY
 	cpu->status.negative = ( value & sign_bit ) != 0;
 }
 // -------------------------------------------------------------------------------
+static void STr( Cpu6502 *cpu, word address, byte registre )
+{
+   cpu->write_memory[address]( cpu->sys, address, registre );
+}
+// -------------------------------------------------------------------------------
 static void DeInXY( Cpu6502 *cpu, byte *registre, int delta ) // INX, DEX, INY, DEY
 {
 	*registre += delta;
@@ -194,6 +199,14 @@ static void Branch( Cpu6502 *cpu, byte flag, byte condition, byte jump )
 	else {
 		cpu->pc += 2;
 	}
+   #ifdef _Cpu6502_Disassembler
+      if( jump & sign_bit ) {
+         cpu->disasm.address = cpu->disasm.pc + 2 + ( (word)jump - 0x100 );
+      }
+      else {
+         cpu->disasm.address = cpu->disasm.pc + 2 + jump;
+      }
+   #endif
 }
 // -------------------------------------------------------------------------------
 static void JMPabs( Cpu6502 *cpu, byte address_lowbyte )
@@ -201,15 +214,21 @@ static void JMPabs( Cpu6502 *cpu, byte address_lowbyte )
 	word address = address_lowbyte;
 	address |= cpu->read_memory[cpu->pc+2]( cpu->sys, cpu->pc+2 ) <<8; // high byte
 	cpu->pc = address;
+   #ifdef _Cpu6502_Disassembler
+      cpu->disasm.address = cpu->pc;
+   #endif
 }
 // -------------------------------------------------------------------------------
 static void JMPind( Cpu6502 *cpu, byte ptr_lowbyte )
 {
 	word ptr_highbyte = cpu->read_memory[cpu->pc+2]( cpu->sys, cpu->pc+2 ) <<8;	
-	cpu->pc = cpu->read_memory[ptr_highbyte|ptr_lowbyte]( cpu->sys, ptr_highbyte | ptr_lowbyte );
+	cpu->pc = cpu->read_memory[ ptr_highbyte | ptr_lowbyte ]( cpu->sys, ptr_highbyte | ptr_lowbyte );
 	ptr_lowbyte++;
-	cpu->pc |= cpu->read_memory[ptr_highbyte|ptr_lowbyte]( cpu->sys, ptr_highbyte | ptr_lowbyte ) <<8;
+	cpu->pc |= cpu->read_memory[ ptr_highbyte | ptr_lowbyte ]( cpu->sys, ptr_highbyte | ptr_lowbyte ) <<8;
 	// Fetch next pointer's byte, this wraps around the page if the pointer starts at $XXFF
+   #ifdef _Cpu6502_Disassembler
+      cpu->disasm.address = cpu->pc;
+   #endif
 }
 // -------------------------------------------------------------------------------
 static void Trr( Cpu6502 *cpu, byte reg_from, byte *reg_to ) // TAX, TAY, TXA, TYA, TSX
@@ -286,6 +305,10 @@ static void JSR( Cpu6502 *cpu, byte address_lowbyte )
 	word address = address_lowbyte;
 	address |= cpu->read_memory[cpu->pc]( cpu->sys, cpu->pc ) <<8; // pc here is at JSR's 3rd byte
 	cpu->pc = address;
+   
+   #ifdef _Cpu6502_Disassembler
+      cpu->disasm.address = address;
+   #endif
 }
 // -------------------------------------------------------------------------------
 static void RTS( Cpu6502 *cpu )

@@ -1,0 +1,29 @@
+
+>> 2015-05-10 Domingo
+
+Hace unos días finalmente empecé a correr nestest. La primera serie de corridas y posteriormente comparando el log de nestest con el de ModNES me permitió
+confirmar que el Cpu6502 estaba corriendo casi perfectamente.
+Descubrí algunos bugs seteando el flag de carry, pero salvo eso, todo lo demás parecía estar correctamente implementado.
+Luego emulando a la perfección el formato de log de nestest con conteo de ciclos de PPU y con direcciones de addressing, encontré un bug que todavía tengo
+que esclarecer.
+Después de correr 3300 instrucciones a la perfección, falla `STA ($33),Y` y no escribe en memoria el valor que debería, seguramente el indirect indexed Y tiene
+un bug que ya arreglaré.
+También debería agregar los addressing modes de los NOP ilegales, más que nada para saber cuántos bytes ocupan esas instrucciones y poder incrementar el pc
+en consecuencia, ignorando los efectos colaterales que el estéril addressing de los NOP pudiera causar.
+Implementar los NOP ilegales me permite llegar un poco más allá dentro del log de nestest para verificar un poco más la correctitud del Cpu6502
+
+>> 2015-04-23
+
+Hoy corriendo ModNES con Mario Bros. me di cuenta que no había implementado ASL,LSR,ROR,ROL con addressing "Accumulator".
+Habría que agregarlos a los tests que corresponda.
+
+Hace varios meses que tenía a ModNES abandonado pensando que Mario Bros. había querido ejecutar una opcode ilegal, lo que suponía uno de dos posibles problemas;
+1) Que efectivamente Mario Bros. usara opcodes ilegales, con lo cual probablemente otros juegos Mapper 0 también lo hicieran, y tendría que implementar
+opcodes ilegales antes de poder correr las primeras pruebas.
+2) Que la ejecución se hubiera desfasado de alguna manera y se estuvieran interpretando operandos como opcodes y viceversa, lo cual implicaba volver a testear
+minuciosamente Cpu6502 para encontrar el error.
+
+Por suerte $0A no era una opcode ilegal sino que era ASL A que no estaba implementada.
+
+Diantres! Seguí la ejecución y ahora sí, quiso ejecutar la instrucción $04 que es ilegal. :(
+Sin embargo llega a esa instrucción después de un JMP ($0014), así que puede ser que la indirección sea incorrecta.

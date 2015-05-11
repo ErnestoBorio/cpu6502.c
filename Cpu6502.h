@@ -56,9 +56,28 @@ typedef struct // Cpu6502
 #ifdef _Cpu6502_Disassembler
 		// this is used by the disassembler, should not produce side effects:
 	byte (*read_memory_disasm)( void *parent_system, word address );
-
-	byte *stack; // Pointer to the stack, at memory page 1 [$100..$1FF]
 	unsigned long int instruction_count;
+   struct {
+      byte op_bytes[3];
+      word pc; // Program counter
+      byte sp; // Stack pointer
+      byte a; // Accumulator register
+      byte x; // Index register x
+      byte y; // Index register y   
+      // struct { // Flags, 0 = false, 1 = true
+      //    byte carry;
+      //    byte zero;
+      //    byte interrupt_disable;
+      //    byte decimal_mode;
+      //    byte overflow;
+      //    byte negative;
+      // } status;
+      byte status;
+      // byte op_length; Not needed?
+      word address; // address resolved by addressing mode
+      word temp_address; // temporal address calculated by indirect addressing modes
+      byte value; // value that was on that address prior to changing
+   } disasm;
 #endif
 
 } Cpu6502;
@@ -80,7 +99,7 @@ int Cpu6502_IRQ( Cpu6502 *cpu );
 int Cpu6502_NMI( Cpu6502 *cpu );
 
 #ifdef _Cpu6502_Disassembler
-	void Cpu6502_Disassemble( Cpu6502 *cpu, byte hide_instruction );
+	void Cpu6502_Disassemble( Cpu6502 *cpu, int cycles );
 #endif
 
 #endif // #ifndef _Cpu6502_h_

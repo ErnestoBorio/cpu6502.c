@@ -3,6 +3,12 @@
 #include <stdio.h>
 #include "Cpu6502.h"
 
+#ifdef _Cpu6502_Disassembler   
+   #include <string.h>
+   #include "disasm.h"
+#endif
+
+
 /* All instructions and addressing modes are static to this translation unit to keep
 	them hidden from the public interface of Cpu6502, behaving as private methods.
 	That's why their implementations are included here, so to make them all a single
@@ -23,22 +29,50 @@
 #define ZeroPageY() cpu->read_memory[(byte)( operand+cpu->y )]( cpu->sys, (byte)( operand+cpu->y ) )
 #define ZeroPageX_adr() (byte)( operand + cpu->x )
 #define ZeroPageY_adr() (byte)( operand + cpu->y )
-#define STr( address, register ) temp_address = address; cpu->write_memory[temp_address]( cpu->sys, temp_address, register );
-
-static unsigned char opcode_cycles[0x100];
+ 
+static const int opcode_cycles[0x100];
+static const int opcode_legality[0x100];
 
 int Cpu6502_CpuStep( Cpu6502 *cpu )
 {
 	cpu->addressing_page_cross = 0;
 	
-	byte opcode = cpu->read_memory[cpu->pc]( cpu->sys, cpu->pc );	
+	byte opcode = cpu->read_memory[cpu->pc]( cpu->sys, cpu->pc );
 	cpu->cycles = opcode_cycles[opcode]; // this can be incremented by special cases like branch page crossing
 
 	// The 6502 reads the next byte in advance to gain time, this could have side effects, so it's not trivial
 	byte operand = cpu->read_memory[cpu->pc+1]( cpu->sys, cpu->pc+1 );
+   
+   // Save current state and addressing info for the disassembler
+   #ifdef _Cpu6502_Disassembler
+      cpu->instruction_count++;
+      memset( &cpu->disasm, 0, sizeof cpu->disasm );
+      cpu->disasm.pc = cpu->pc;
+      cpu->disasm.sp = cpu->sp;
+      cpu->disasm.op_bytes[0] = cpu->read_memory_disasm( cpu->sys, cpu->pc );
+      cpu->disasm.op_bytes[1] = cpu->read_memory_disasm( cpu->sys, cpu->pc+1 );
+      cpu->disasm.op_bytes[2] = cpu->read_memory_disasm( cpu->sys, cpu->pc+2 );
+      cpu->disasm.a = cpu->a;
+      cpu->disasm.x = cpu->x;
+      cpu->disasm.y = cpu->y;
+      cpu->disasm.status = pack_status( cpu, 0 );
+      switch( opcode_addressing[opcode] )
+      {
+         case ZRP:
+            cpu->disasm.address = operand;
+            cpu->disasm.value = cpu->read_memory_disasm( cpu->sys, operand );
+            break;
+         case ZPX:
+            cpu->disasm.address = (byte)( operand + cpu->x );
+            cpu->disasm.value = cpu->read_memory_disasm( cpu->sys, cpu->disasm.address );
+            break;
+         case ZPY:
+            cpu->disasm.address = (byte)( operand + cpu->y );
+            cpu->disasm.value = cpu->read_memory_disasm( cpu->sys, cpu->disasm.address );
+            break;
+      }
+   #endif
 	
-	word temp_address; // Needed by cpu->write_memory[] pointer table dereferencing
-
 	switch( opcode )
 	{
 			// LDA LDX LDY
@@ -61,19 +95,19 @@ int Cpu6502_CpuStep( Cpu6502 *cpu )
 		case LDA_Indexed_Indirect_X_A1: LDr( cpu, &cpu->a, Indexed_Indirect_X( cpu, operand ) ); break;
 		case LDA_Indirect_Indexed_Y_B1: LDr( cpu, &cpu->a, Indirect_Indexed_Y( cpu, operand ) ); _PageCross(); break;
 			// STA STX STY
-		case STA_Zero_page_85: STr( operand, cpu->a ); _ZeroPage(); break;
-		case STX_Zero_page_86: STr( operand, cpu->x ); _ZeroPage(); break;
-		case STY_Zero_page_84: STr( operand, cpu->y ); _ZeroPage(); break;
-		case STA_Zero_page_X_95: STr( ZeroPageX_adr(), cpu->a ); _ZeroPageX(); break;
-		case STY_Zero_page_X_94: STr( ZeroPageX_adr(), cpu->y ); _ZeroPageX(); break;
-		case STX_Zero_page_Y_96: STr( ZeroPageY_adr(), cpu->x ); _ZeroPageX(); break;
-		case STA_Absolute_8D: STr( Absolute_adr( cpu, operand ), cpu->a ); break;
-		case STX_Absolute_8E: STr( Absolute_adr( cpu, operand ), cpu->x ); break;
-		case STY_Absolute_8C: STr( Absolute_adr( cpu, operand ), cpu->y ); break;
-		case STA_Absolute_X_9D: STr( Absolute_Indexed_adr( cpu, operand, cpu->x ), cpu->a ); break;
-		case STA_Absolute_Y_99: STr( Absolute_Indexed_adr( cpu, operand, cpu->y ), cpu->a ); break;
-		case STA_Indexed_Indirect_X_81: STr( Indexed_Indirect_X_adr( cpu, operand ), cpu->a ); break;
-		case STA_Indirect_Indexed_Y_91: STr( Indirect_Indexed_Y_adr( cpu, operand ), cpu->a ); break;
+		case STA_Zero_page_85: STr( cpu, operand, cpu->a ); _ZeroPage(); break;
+		case STX_Zero_page_86: STr( cpu, operand, cpu->x ); _ZeroPage(); break;
+		case STY_Zero_page_84: STr( cpu, operand, cpu->y ); _ZeroPage(); break;
+		case STA_Zero_page_X_95: STr( cpu, ZeroPageX_adr(), cpu->a ); _ZeroPageX(); break;
+		case STY_Zero_page_X_94: STr( cpu, ZeroPageX_adr(), cpu->y ); _ZeroPageX(); break;
+		case STX_Zero_page_Y_96: STr( cpu, ZeroPageY_adr(), cpu->x ); _ZeroPageX(); break;
+		case STA_Absolute_8D: STr( cpu, Absolute_adr( cpu, operand ), cpu->a ); break;
+		case STX_Absolute_8E: STr( cpu, Absolute_adr( cpu, operand ), cpu->x ); break;
+		case STY_Absolute_8C: STr( cpu, Absolute_adr( cpu, operand ), cpu->y ); break;
+		case STA_Absolute_X_9D: STr( cpu, Absolute_Indexed_adr( cpu, operand, cpu->x ), cpu->a ); break;
+		case STA_Absolute_Y_99: STr( cpu, Absolute_Indexed_adr( cpu, operand, cpu->y ), cpu->a ); break;
+		case STA_Indexed_Indirect_X_81: STr( cpu, Indexed_Indirect_X_adr( cpu, operand ), cpu->a ); break;
+		case STA_Indirect_Indexed_Y_91: STr( cpu, Indirect_Indexed_Y_adr( cpu, operand ), cpu->a ); break;
 			// INX INY INC DEX DEY DEC
 		case INX_E8: DeInXY( cpu, &cpu->x, +1 ); _Implied(); break;
 		case DEX_CA: DeInXY( cpu, &cpu->x, -1 ); _Implied(); break;
@@ -206,13 +240,22 @@ int Cpu6502_CpuStep( Cpu6502 *cpu )
 		case BRK_00: cpu->pc += 2; IRQ( cpu, 1 ); break;
 			// The 6502 skips the byte following BRK, so it's actually considered a 2 byte instruction
 
-      case 0x04: case 0x0C: case 0x14: case 0x1A: case 0x1C: case 0x34: case 0x3A: case 0x3C: case 0x44:
-      case 0x54: case 0x5A: case 0x5C: case 0x64: case 0x74: case 0x7A: case 0x7C: case 0x80: case 0xD4:
-      case 0xDA: case 0xDC: case 0xF4: case 0xFA: case 0xFC:
-         printf( "Hit an unofficial NOP. " );
 		default:
-			printf( "Opcode $%02X not implemented.\nExecuted %lu instructions.\n", opcode, cpu->instruction_count );
-			assert(0);
+         if( opcode_legality[opcode] == 1 )
+         {
+            switch( opcode_addressing[opcode] )
+            {
+               case IMP: case IMM: case ACU: cpu->pc += 1; break;
+               case IND: case ABS: case ABX: case ABY: cpu->pc += 3; break;               
+               default: cpu->pc += 2; // Zero page based addressing modes and branches
+            }
+            break;
+         }
+			// printf( "Opcode $%02X not implemented.\nExecuted %lu instructions.\n", opcode, cpu->instruction_count );
+         #ifdef _Cpu6502_Disassembler
+            Cpu6502_Disassemble( cpu, -1 );
+         #endif
+			assert( 0 && "Opcode not implemented" ); // opcode not implemented.
 	}
 	return cpu->cycles;
 }
@@ -220,22 +263,22 @@ int Cpu6502_CpuStep( Cpu6502 *cpu )
 /* Has the cycle count for each opcode, including the undocumented. Taken from FCEUX source code.
 	BRK, opcode 00, although it actually takes 7 cycles, has 0 cycles here, because the 7 cycles
 	will be counted inside the IRQ() function, regardless if it came from a BRK or a hardware interrupt. */
-static unsigned char opcode_cycles[0x100] = {
-/*        0 1 2 3 4 5 6 7 8 9 A B C D E F */
-/* $00 */ 0,6,2,8,3,3,5,5,3,2,2,2,4,4,6,6,
-/* $10 */ 2,5,2,8,4,4,6,6,2,4,2,7,4,4,7,7,
-/* $20 */ 6,6,2,8,3,3,5,5,4,2,2,2,4,4,6,6,
-/* $30 */ 2,5,2,8,4,4,6,6,2,4,2,7,4,4,7,7,
-/* $40 */ 6,6,2,8,3,3,5,5,3,2,2,2,3,4,6,6,
-/* $50 */ 2,5,2,8,4,4,6,6,2,4,2,7,4,4,7,7,
-/* $60 */ 6,6,2,8,3,3,5,5,4,2,2,2,5,4,6,6,
-/* $70 */ 2,5,2,8,4,4,6,6,2,4,2,7,4,4,7,7,
-/* $80 */ 2,6,2,6,3,3,3,3,2,2,2,2,4,4,4,4,
-/* $90 */ 2,6,2,6,4,4,4,4,2,5,2,5,5,5,5,5,
-/* $A0 */ 2,6,2,6,3,3,3,3,2,2,2,2,4,4,4,4,
-/* $B0 */ 2,5,2,5,4,4,4,4,2,4,2,4,4,4,4,4,
-/* $C0 */ 2,6,2,8,3,3,5,5,2,2,2,2,4,4,6,6,
-/* $D0 */ 2,5,2,8,4,4,6,6,2,4,2,7,4,4,7,7,
-/* $E0 */ 2,6,3,8,3,3,5,5,2,2,2,2,4,4,6,6,
-/* $F0 */ 2,5,2,8,4,4,6,6,2,4,2,7,4,4,7,7
+static const int opcode_cycles[0x100] = {
+// 0 1 2 3 4 5 6 7 8 9 A B C D E F
+   0,6,2,8,3,3,5,5,3,2,2,2,4,4,6,6, //00
+   2,5,2,8,4,4,6,6,2,4,2,7,4,4,7,7, //10
+   6,6,2,8,3,3,5,5,4,2,2,2,4,4,6,6, //20
+   2,5,2,8,4,4,6,6,2,4,2,7,4,4,7,7, //30
+   6,6,2,8,3,3,5,5,3,2,2,2,3,4,6,6, //40
+   2,5,2,8,4,4,6,6,2,4,2,7,4,4,7,7, //50
+   6,6,2,8,3,3,5,5,4,2,2,2,5,4,6,6, //60
+   2,5,2,8,4,4,6,6,2,4,2,7,4,4,7,7, //70
+   2,6,2,6,3,3,3,3,2,2,2,2,4,4,4,4, //80
+   2,6,2,6,4,4,4,4,2,5,2,5,5,5,5,5, //90
+   2,6,2,6,3,3,3,3,2,2,2,2,4,4,4,4, //A0
+   2,5,2,5,4,4,4,4,2,4,2,4,4,4,4,4, //B0
+   2,6,2,8,3,3,5,5,2,2,2,2,4,4,6,6, //C0
+   2,5,2,8,4,4,6,6,2,4,2,7,4,4,7,7, //D0
+   2,6,3,8,3,3,5,5,2,2,2,2,4,4,6,6, //E0
+   2,5,2,8,4,4,6,6,2,4,2,7,4,4,7,7  //F0
 };

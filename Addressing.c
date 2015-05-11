@@ -21,6 +21,12 @@ static word Absolute_adr( Cpu6502 *cpu, byte address_lowbyte ) // STA $HHHH
 	word address = address_lowbyte;
 	address |= get_operand2_high();
 	cpu->pc += 3;
+   
+   #ifdef _Cpu6502_Disassembler
+      cpu->disasm.address = address;
+      cpu->disasm.value = cpu->read_memory_disasm( cpu->sys, address );
+   #endif
+      
 	return address;
 }
 
@@ -30,6 +36,12 @@ static byte Absolute( Cpu6502 *cpu, byte address_lowbyte ) // LDA $HHHH
 	word address = address_lowbyte;
 	address |= get_operand2_high();
 	cpu->pc += 3;
+   
+   #ifdef _Cpu6502_Disassembler
+      cpu->disasm.address = address;
+      cpu->disasm.value = cpu->read_memory_disasm( cpu->sys, address );
+   #endif
+      
 	return cpu->read_memory[address]( cpu->sys, address );
 }
 
@@ -42,6 +54,12 @@ static word Absolute_Indexed_adr( Cpu6502 *cpu, byte address_lowbyte, byte index
 	}
 	address += get_operand2_high();
 	cpu->pc += 3;
+   
+   #ifdef _Cpu6502_Disassembler
+      cpu->disasm.address = address;
+      cpu->disasm.value = cpu->read_memory_disasm( cpu->sys, address );
+   #endif
+   
 	return address;
 }
 
@@ -54,6 +72,12 @@ static word Absolute_Indexed( Cpu6502 *cpu, byte address_lowbyte, byte index ) /
 	}
 	address += get_operand2_high();
 	cpu->pc += 3;
+   
+   #ifdef _Cpu6502_Disassembler
+      cpu->disasm.address = address;
+      cpu->disasm.value = cpu->read_memory_disasm( cpu->sys, address );
+   #endif
+   
 	return cpu->read_memory[address]( cpu->sys, address );
 }
 
@@ -65,6 +89,13 @@ static word Indexed_Indirect_X_adr( Cpu6502 *cpu, byte base ) // STA ($HH,X)
 	word address = cpu->read_memory[pointer]( cpu->sys, pointer );
 	pointer++;
 	address |= cpu->read_memory[pointer]( cpu->sys, pointer ) <<8;
+   
+   #ifdef _Cpu6502_Disassembler
+      cpu->disasm.temp_address = (byte)(pointer-1);
+      cpu->disasm.address = address;
+      cpu->disasm.value = cpu->read_memory_disasm( cpu->sys, address );
+   #endif
+   
 	return address;
 }
 
@@ -76,6 +107,13 @@ static byte Indexed_Indirect_X( Cpu6502 *cpu, byte base ) // LDA ($HH,X)
 	word address = cpu->read_memory[pointer]( cpu->sys, pointer );
 	pointer++;
 	address |= cpu->read_memory[pointer]( cpu->sys, pointer ) <<8;
+   
+   #ifdef _Cpu6502_Disassembler
+      cpu->disasm.temp_address = (byte)(pointer-1);
+      cpu->disasm.address = address;
+      cpu->disasm.value = cpu->read_memory_disasm( cpu->sys, address );
+   #endif
+   
 	return cpu->read_memory[address]( cpu->sys, address );
 }
 
@@ -89,6 +127,14 @@ static byte Indirect_Indexed_Y_adr( Cpu6502 *cpu, byte base ) // STA ($HH),Y
 	}
 	base++;
 	address += ( cpu->read_memory[base]( cpu->sys, base ) <<8 );
+   
+   #ifdef _Cpu6502_Disassembler
+      cpu->disasm.temp_address = cpu->read_memory_disasm( cpu->sys, (byte)(base-1) );
+      cpu->disasm.temp_address |= cpu->read_memory_disasm( cpu->sys, base ) <<8;
+      cpu->disasm.address = address;
+      cpu->disasm.value = cpu->read_memory_disasm( cpu->sys, address );
+   #endif
+   
 	return address;
 }
 
@@ -102,6 +148,14 @@ static byte Indirect_Indexed_Y( Cpu6502 *cpu, byte base ) // LDA ($HH),Y
 	}
 	base++;
 	address += ( cpu->read_memory[base]( cpu->sys, base ) <<8 );
+   
+   #ifdef _Cpu6502_Disassembler
+      cpu->disasm.temp_address = cpu->read_memory_disasm( cpu->sys, (byte)(base-1) );
+      cpu->disasm.temp_address |= cpu->read_memory_disasm( cpu->sys, base ) <<8;
+      cpu->disasm.address = address;
+      cpu->disasm.value = cpu->read_memory_disasm( cpu->sys, address );
+   #endif
+   
 	return cpu->read_memory[address]( cpu->sys, address );
 }
 
