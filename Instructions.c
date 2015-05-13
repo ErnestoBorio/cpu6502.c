@@ -223,12 +223,16 @@ static void JMPind( Cpu6502 *cpu, byte ptr_lowbyte )
 {
 	word ptr_highbyte = cpu->read_memory[cpu->pc+2]( cpu->sys, cpu->pc+2 ) <<8;	
 	cpu->pc = cpu->read_memory[ ptr_highbyte | ptr_lowbyte ]( cpu->sys, ptr_highbyte | ptr_lowbyte );
+   
+    #ifdef _Cpu6502_Disassembler
+      // nestest disassembler prints the non-wrapped around FF address 
+      word ptr_lowbyte_overflow = ptr_lowbyte + 1;
+      cpu->disasm.temp_address = cpu->pc | cpu->read_memory_disasm( cpu->sys, ptr_highbyte + ptr_lowbyte_overflow ) <<8;
+   #endif 
+      
 	ptr_lowbyte++;
 	cpu->pc |= cpu->read_memory[ ptr_highbyte | ptr_lowbyte ]( cpu->sys, ptr_highbyte | ptr_lowbyte ) <<8;
 	// Fetch next pointer's byte, this wraps around the page if the pointer starts at $XXFF
-   #ifdef _Cpu6502_Disassembler
-      cpu->disasm.address = cpu->pc;
-   #endif
 }
 // -------------------------------------------------------------------------------
 static void Trr( Cpu6502 *cpu, byte reg_from, byte *reg_to ) // TAX, TAY, TXA, TYA, TSX

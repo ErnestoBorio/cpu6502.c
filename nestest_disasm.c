@@ -69,7 +69,7 @@ void Cpu6502_Disassemble( Cpu6502 *cpu, int cycles )
          case ABY: adr_len = printf( "$%02X%02X,Y @ %04X = %02X", cpu->disasm.op_bytes[2], cpu->disasm.op_bytes[1], cpu->disasm.address, cpu->disasm.value ); break;
          case IIX: adr_len = printf( "($%02X,X) @ %02X = %04X = %02X", cpu->disasm.op_bytes[1], cpu->disasm.temp_address, cpu->disasm.address, cpu->disasm.value ); break;
          case IIY: adr_len = printf( "($%02X),Y = %04X @ %04X = %02X", cpu->disasm.op_bytes[1], cpu->disasm.temp_address, cpu->disasm.address, cpu->disasm.value ); break;
-         case IND: adr_len = printf( "($%02X%02X) = %04X", cpu->disasm.op_bytes[2], cpu->disasm.op_bytes[1], cpu->disasm.address ); break;
+         case IND: adr_len = printf( "($%02X%02X) = %04X", cpu->disasm.op_bytes[2], cpu->disasm.op_bytes[1], cpu->disasm.temp_address ); break;
          case ACU: adr_len = printf( "A" ); break;
          case IMP: adr_len = 0; break;
       }

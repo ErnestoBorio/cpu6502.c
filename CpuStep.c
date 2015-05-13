@@ -36,7 +36,7 @@ static const int opcode_legality[0x100];
 int Cpu6502_CpuStep( Cpu6502 *cpu )
 {
 	cpu->addressing_page_cross = 0;
-	
+
 	byte opcode = cpu->read_memory[cpu->pc]( cpu->sys, cpu->pc );
 	cpu->cycles = opcode_cycles[opcode]; // this can be incremented by special cases like branch page crossing
 

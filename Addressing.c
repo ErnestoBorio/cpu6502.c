@@ -64,7 +64,7 @@ static word Absolute_Indexed_adr( Cpu6502 *cpu, byte address_lowbyte, byte index
 }
 
 // -------------------------------------------------------------------------------
-static word Absolute_Indexed( Cpu6502 *cpu, byte address_lowbyte, byte index ) // LDA $HHHH,Y
+static byte Absolute_Indexed( Cpu6502 *cpu, byte address_lowbyte, byte index ) // LDA $HHHH,Y
 {
 	word address = address_lowbyte + index;
 	if( address > 0xFF ) {
@@ -118,7 +118,7 @@ static byte Indexed_Indirect_X( Cpu6502 *cpu, byte base ) // LDA ($HH,X)
 }
 
 // -------------------------------------------------------------------------------
-static byte Indirect_Indexed_Y_adr( Cpu6502 *cpu, byte base ) // STA ($HH),Y
+static word Indirect_Indexed_Y_adr( Cpu6502 *cpu, byte base ) // STA ($HH),Y
 {
 	cpu->pc += 2;
 	word address = cpu->read_memory[base]( cpu->sys, base ) + cpu->y;
