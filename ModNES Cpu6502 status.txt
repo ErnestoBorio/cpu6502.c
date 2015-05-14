@@ -1,7 +1,18 @@
 
-TO DO:
+>> 2015-05-10 Miércoles
 
-Ponerle los addressing modes a los NOP ilegales para poder skipear los bytes de la instrucción correctamente. Los ciclos ya están en la table que chorée de FCEUX.
+Bueno finalmente arreglé unos addressings erróneos, y le agregué addressing mode a los NOP ilegales, para poder skipearlos y seguir ejecutando.
+Ahora Cpu6502 pasa exitosamente Nestest! FUCK YEAH!
+Con la excepción de los opcodes ilegales más allá del NOP.
+Para los NOP ilegales hay una excepción, al no ejecutar el addressing, los NOP Absolute,X si el direccionamiento cruza un límite de página, 
+obviamente no estoy agregando el ciclo extra, por lo tanto si se trata de ejecutar un NOP ilegal y se da esta puta casualidad, el conteo de 
+ciclos de CPU va a estar uno abajo de lo correcto, me cago, no creo que sea demasiado serio.
+Esto se podría arreglar ejecutando el addresing para estos NOPs pero creo que no vale la pena ni agacharse por tan poco.
+
+Mejoras a futuro:
+Llamar primero al addressing y después a la instrucción, ambos según las correspondientes tablas, en vez de hacer el switch
+largo y verbose de CpuStep.
+El PC se puede incrementar simplemente basado en el addressing y no hacerlo a mano en cada caso.
 
 >> 2015-05-10 Domingo
 

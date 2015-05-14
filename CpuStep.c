@@ -119,8 +119,8 @@ int Cpu6502_CpuStep( Cpu6502 *cpu )
 		case DEC_Zero_page_X_D6: IncDec( cpu, ZeroPageX_adr(), -1 ); _ZeroPageX(); break;
 		case INC_Absolute_EE: IncDec( cpu, Absolute_adr( cpu, operand ), +1 ); break;
 		case DEC_Absolute_CE: IncDec( cpu, Absolute_adr( cpu, operand ), -1 ); break;
-      case INC_Absolute_X_FE: IncDec( cpu, Absolute_adr( cpu, operand ), +1 ); break;
-      case DEC_Absolute_X_DE: IncDec( cpu, Absolute_adr( cpu, operand ), -1 ); break;
+      case INC_Absolute_X_FE: IncDec( cpu, Absolute_Indexed_adr( cpu, operand, cpu->x ), +1 ); break;
+      case DEC_Absolute_X_DE: IncDec( cpu, Absolute_Indexed_adr( cpu, operand, cpu->x ), -1 ); break;
 			// ADC SBC
 		case ADC_Immediate_69: ADC( cpu, operand ); _Immediate(); break;
 		case SBC_Immediate_E9: SBC( cpu, operand ); _Immediate(); break;
@@ -260,10 +260,10 @@ int Cpu6502_CpuStep( Cpu6502 *cpu )
 	return cpu->cycles;
 }
 
-/* Has the cycle count for each opcode, including the undocumented. Taken from FCEUX source code.
-	BRK, opcode 00, although it actually takes 7 cycles, has 0 cycles here, because the 7 cycles
-	will be counted inside the IRQ() function, regardless if it came from a BRK or a hardware interrupt. */
-static const int opcode_cycles[0x100] = {
+// Has the cycle count for each opcode, including the undocumented. Taken from FCEUX source code.
+// BRK, opcode 00, although it actually takes 7 cycles, has 0 cycles here, because the 7 cycles
+// will be counted inside the IRQ() function, regardless if it came from a BRK or a hardware interrupt.
+
 // 0 1 2 3 4 5 6 7 8 9 A B C D E F
    0,6,2,8,3,3,5,5,3,2,2,2,4,4,6,6, //00
    2,5,2,8,4,4,6,6,2,4,2,7,4,4,7,7, //10
