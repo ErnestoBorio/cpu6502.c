@@ -3,7 +3,7 @@
 	#define _Cpu6502_h_
 
 // This file should be present in the project that uses Cpu6502
-#include "Cpu6502_settings.h"
+//#include "Cpu6502_settings.h"
 
 #ifndef false
 	#define false 0
