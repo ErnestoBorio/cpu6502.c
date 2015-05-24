@@ -8,7 +8,6 @@
    #include "disasm.h"
 #endif
 
-
 /* All instructions and addressing modes are static to this translation unit to keep
 	them hidden from the public interface of Cpu6502, behaving as private methods.
 	That's why their implementations are included here, so to make them all a single

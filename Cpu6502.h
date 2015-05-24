@@ -103,18 +103,3 @@ int Cpu6502_NMI( Cpu6502 *cpu );
 #endif
 
 #endif // #ifndef _Cpu6502_h_
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
