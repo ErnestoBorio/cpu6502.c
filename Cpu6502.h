@@ -20,11 +20,6 @@ typedef unsigned short int word;
 typedef char _static_assert_type_byte_is_1_byte_wide_ [ ( sizeof(byte) == 1 )*2-1 ];
 typedef char _static_assert_type_word_is_2_bytes_wide_[ ( sizeof(word) == 2 )*2-1 ];
 
-#define bit0 1<<0
-#define bit6 1<<6
-#define bit7 1<<7
-#define sign_bit bit7 // Most significant bit of a byte is the sign bit, 1 means negative
-
 // -------------------------------------------------------------------------------
 typedef struct // Cpu6502
 {

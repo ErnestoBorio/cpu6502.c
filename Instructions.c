@@ -14,6 +14,11 @@
  careful programmers should've been aware and avoid this unorthodox ways.
  */
 
+#define bit0 1<<0
+#define bit6 1<<6
+#define bit7 1<<7
+#define sign_bit bit7 // Most significant bit of a byte is the sign bit, 1 means negative
+
 static inline void push( Cpu6502 *cpu, byte value );
 static inline byte pull( Cpu6502 *cpu );
 
