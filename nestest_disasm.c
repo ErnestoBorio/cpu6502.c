@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "Cpu6502.h"
-#include "disasm.h"
+#include "symbols.h"
 
 #ifdef _Cpu6502_Disassembler
 
@@ -25,6 +25,9 @@ static const char opcode_mnemonic[0x100][4] = {
    "CPX", "SBC", "...", "...", "CPX", "SBC", "INC", "...", "INX", "SBC", "NOP", "...", "CPX", "SBC", "INC", "...", // E0
    "BEQ", "SBC", "...", "...", "...", "SBC", "INC", "...", "SED", "SBC", "...", "...", "...", "SBC", "INC", "..."  // F0
 };
+
+extern const int opcode_addressing[ 0x100 ];
+extern const int opcode_legality[ 0x100 ];
 
 void Cpu6502_Disassemble( Cpu6502 *cpu, int cycles )
 {
